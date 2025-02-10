@@ -121,3 +121,39 @@ int validar_campo(const char *tabela, const char *campo) {
     }
     return 0;
 }
+
+int extrair_campos(struct comando *cmd, char tabela[][255]) {
+    const char *inst = cmd->instrucao;
+    int len = strlen(inst);
+    int i, j = 0, k = 0;
+    int copiando = 0;
+
+    for (i = 0; i < len; i++) {
+        if (inst[i] == '(' && !copiando) {
+            // Encontrou o '(' -> começa a copiar
+            copiando = 1;
+            continue;
+        }
+        if (copiando) {
+            // Ao encontrar vírgula, finaliza o campo atual e passa para o próximo
+            if (inst[i] == ',') {
+                tabela[k][j] = '\0';
+                k++;
+                j = 0;
+                continue;
+            }
+            // Ao encontrar ')', finaliza o último campo e sai
+            else if (inst[i] == ')') {
+                tabela[k][j] = '\0';
+                break;
+            }
+            // Copia caractere para o campo atual
+            else {
+                tabela[k][j] = inst[i];
+                j++;
+            }
+        }
+    }
+    // Retorna a quantidade de campos extraídos (k + 1, se k começou em 0)
+    return k + 1;
+}
