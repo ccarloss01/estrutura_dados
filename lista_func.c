@@ -285,4 +285,4 @@ void separar_comandos(struct comando **lista, struct comando **pessoa, struct co
         aux = (*lista);
     }
 
-}
+} 
