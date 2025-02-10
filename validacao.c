@@ -60,7 +60,7 @@ int validar_insert(struct comando *cmd) {
 }
 
 int validar_select(struct comando *cmd) {
-    if (strstr(cmd->instrucao, " from ")) {
+    if (strstr(cmd->instrucao, "from")) {
         return 1;
     }
     return 0;
@@ -88,17 +88,36 @@ int validar_comando(struct comando *cmd) {
         return 0;
     }
 
-    if (strncmp(cmd->instrucao, "insert into", 11) == 0) {
+    if (strncmp(cmd->instrucao, "insert into ", 11) == 0) {
         return validar_insert(cmd);
     }
-    else if (strncmp(cmd->instrucao, "select * from", 13) == 0) {
-        return validar_select(cmd);
+    else if (strncmp(cmd->instrucao, "select * from ", 13) == 0) {
+        return 1;
     }
-    else if (strncmp(cmd->instrucao, "delete from", 11) == 0) {
+    else if (strncmp(cmd->instrucao, "delete from ", 11) == 0) {
         return validar_delete(cmd);
     }
-    else if (strncmp(cmd->instrucao, "update", 11) == 0) {
+    else if (strncmp(cmd->instrucao, "update ", 11) == 0) {
         return validar_update(cmd);
+    }
+    return 0;
+}
+
+int validar_campo(const char *tabela, const char *campo) {
+    if (strcmp(tabela, "pessoa") == 0) {
+        if (strcmp(campo, "nome") == 0 ||
+            strcmp(campo, "fone") == 0 ||
+            strcmp(campo, "endereco") == 0 ||
+            strcmp(campo, "data_nascimento") == 0)
+            return 1;
+    } else if (strcmp(tabela, "pet") == 0) {
+        if (strcmp(campo, "nome") == 0 ||
+            strcmp(campo, "codigo_cli") == 0 ||
+            strcmp(campo, "codigo_tipo") == 0)
+            return 1;
+    } else if (strcmp(tabela, "tipo_pet") == 0) {
+        if (strcmp(campo, "descricao") == 0)
+            return 1;
     }
     return 0;
 }
