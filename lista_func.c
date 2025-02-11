@@ -10,6 +10,12 @@
 
 // Métodos Lista Pessoa
 void inserir_final_pessoa(struct pessoa **lista, char codigo[], char nome[], char fone[], char data_nascimento[], char endereco[]) {
+    struct pessoa *aux = buscar_pessoa(*lista, codigo);
+
+    if (aux != NULL) {
+        return;
+    }
+    
     struct pessoa *nova_pessoa = malloc(sizeof(struct pessoa));
     strcpy(nova_pessoa->codigo, codigo);
     strcpy(nova_pessoa->nome, nome);
@@ -87,6 +93,13 @@ void atualizar_pessoa(struct pessoa *lista, char codigo[], char nome[], char fon
 
 // Métodos Lista Tipo de Pet
 void inserir_final_tipo_pet(struct tipo_de_pet **lista, char codigo[], char descricao[]) {
+    
+    struct tipo_de_pet *aux = buscar_tipo_pet(*lista, codigo);
+
+    if (aux != NULL) {
+        return;
+    }
+    
     struct tipo_de_pet *novo_tipo_pet = malloc(sizeof(struct tipo_de_pet));
     strcpy(novo_tipo_pet->codigo, codigo);
     strcpy(novo_tipo_pet->descricao, descricao);
@@ -154,6 +167,12 @@ void atualizar_tipo_pet(struct tipo_de_pet *lista, char codigo[], char descricao
 
 // Métodos Lista Pet
 void inserir_final_pet(struct pet **lista, char codigo[], char nome[], char codigo_tipo[], char codigo_pes[]) {
+
+    struct pet *aux = buscar_pet(*lista, codigo);
+
+    if (aux != NULL) {
+        return;
+    }
 
     struct pet *novo_pet = malloc(sizeof(struct pet));
     strcpy(novo_pet->codigo, codigo);
