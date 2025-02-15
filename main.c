@@ -10,7 +10,7 @@
 #include "arquivos_func.h"
 #include "validacao.h"
 
-int main(void) {
+int main() {
 
-    return 0;
+	return 0;
 }
