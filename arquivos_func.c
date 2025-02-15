@@ -1,4 +1,7 @@
 #include "arquivos_func.h"
+
+#include <ctype.h>
+
 #include "pessoa.h"
 #include "tipo_de_pet.h"
 #include "pet.h"
@@ -6,6 +9,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 FILE *abrir_arquivo(char path[]) {
     FILE *arquivo = fopen(path, "rb+");
@@ -23,7 +27,18 @@ void ler_arquivo(FILE *arquivo, struct comando **lista) {
     char linha[255];
     while (!feof(arquivo)) {
         fgets(linha, 255, arquivo);
+        transformar_minuscula(linha);
         inserir_final_comando(lista, 0, linha);
+    }
+}
+
+void transformar_minuscula(char str[]) {
+
+    char p[strlen(str)];
+    strcpy(p, "");
+
+    for(int i = 0; i < strlen(str); i++) {
+        str[i] = tolower(str[i]);
     }
 }
 
@@ -112,7 +127,7 @@ struct pet *ler_dados_pets() {
 
     struct pet *lista = NULL;
     for (int i = 0; i < len; i++) {
-        inserir_final_pet(&lista, pets[i].codigo, pets[i].nome, pets[i].codigo_tipo, pets[i].codigo_pes);
+        inserir_final_pet_sem_verificar(&lista, pets[i].codigo, pets[i].nome, pets[i].codigo_tipo, pets[i].codigo_pes);
     }
 
     return lista;

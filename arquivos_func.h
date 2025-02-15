@@ -12,6 +12,8 @@ FILE *abrir_arquivo(char path[]);
 
 void ler_arquivo(FILE *arquivo, struct comando **lista);
 
+void transformar_minuscula(char str[]);
+
 void armazenar_dados_pessoas(struct pessoa *lista, FILE *f);
 
 struct pessoa *ler_dados_pessoas();
