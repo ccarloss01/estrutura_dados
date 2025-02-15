@@ -51,8 +51,12 @@ struct pessoa *buscar_pessoa(struct pessoa *lista, char codigo[]) {
 
 }
 
-void remover_pessoa(struct pessoa **lista, char codigo[]) {
+void remover_pessoa(struct pessoa **lista, struct pet *pet, char codigo[]) {
     if(*lista == NULL) {
+        return;
+    }
+
+    if(buscar_pessoa_pet(pet, codigo)) {
         return;
     }
 
@@ -89,6 +93,19 @@ void atualizar_pessoa(struct pessoa *lista, char codigo[], char nome[], char fon
     strcpy(aux->data_nascimento, data_nascimento);
     strcpy(aux->endereco, endereco);
 
+}
+
+int buscar_pessoa_pet(struct pet *lista, char codigo[]) {
+    struct pet *aux = lista;
+    while(aux && strcmp(aux->codigo_pes, codigo) != 0) {
+        aux = aux->prox;
+    }
+
+    if(aux != NULL) {
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
 // Métodos Lista Tipo de Pet
@@ -129,8 +146,12 @@ struct tipo_de_pet *buscar_tipo_pet(struct tipo_de_pet *lista, char codigo[]) {
     return aux;
 }
 
-void remover_tipo_pet(struct tipo_de_pet **lista, char codigo[]) {
+void remover_tipo_pet(struct tipo_de_pet **lista, struct pet *pet, char codigo[]) {
     if(*lista == NULL) {
+        return;
+    }
+
+    if(buscar_tipo_pet_pet(pet, codigo)) {
         return;
     }
 
@@ -165,9 +186,61 @@ void atualizar_tipo_pet(struct tipo_de_pet *lista, char codigo[], char descricao
     strcpy(aux->descricao, descricao);
 }
 
-// Métodos Lista Pet
-void inserir_final_pet(struct pet **lista, char codigo[], char nome[], char codigo_tipo[], char codigo_pes[]) {
+int buscar_tipo_pet_pet(struct pet *lista, char codigo[]) {
+    struct pet *aux = lista;
+    while(aux && strcmp(aux->codigo_tipo, codigo) != 0) {
+        aux = aux->prox;
+    }
 
+    if(aux != NULL) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+// Métodos Lista Pet
+void inserir_final_pet(struct pet **lista, struct pessoa *pessoa, struct tipo_de_pet *tipo_pet,
+    char codigo[], char nome[], char codigo_tipo[], char codigo_pes[]) {
+
+    struct pet *aux = buscar_pet(*lista, codigo);
+
+    if (aux != NULL) {
+        return;
+    }
+
+    if(buscar_tipo_pet(tipo_pet, codigo_tipo) == NULL ||
+        buscar_pessoa(pessoa, codigo_pes) == NULL) {
+        return;
+    }
+
+    struct pet *novo_pet = malloc(sizeof(struct pet));
+    strcpy(novo_pet->codigo, codigo);
+    strcpy(novo_pet->nome, nome);
+    strcpy(novo_pet->codigo_tipo, codigo_tipo);
+    strcpy(novo_pet->codigo_pes, codigo_pes);
+
+    novo_pet->prox = NULL;
+
+    if (*lista == NULL) {
+        *lista = novo_pet;
+        novo_pet->ant = NULL;
+        return;
+    }
+
+    struct pet *ult = *lista;
+    while (ult->prox != NULL) {
+        ult = ult->prox;
+    }
+
+    ult->prox = novo_pet;
+    novo_pet->ant = ult;
+
+}
+
+void inserir_final_pet_sem_verificar(struct pet **lista,
+    char codigo[], char nome[], char codigo_tipo[], char codigo_pes[]) {
+        
     struct pet *aux = buscar_pet(*lista, codigo);
 
     if (aux != NULL) {
@@ -195,7 +268,6 @@ void inserir_final_pet(struct pet **lista, char codigo[], char nome[], char codi
 
     ult->prox = novo_pet;
     novo_pet->ant = ult;
-
 }
 
 struct pet *buscar_pet(struct pet *lista, char codigo[]) {

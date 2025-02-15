@@ -1,6 +1,7 @@
 #include "validacao.h"
 
 #include <stdio.h>
+#include <string.h>
 
 #include "comando.h"
 
