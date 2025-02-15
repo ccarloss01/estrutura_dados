@@ -265,11 +265,12 @@ void separar_comandos(struct comando **lista, struct comando **pessoa, struct co
 
     int ordem_exec = 1;
 
-    if(lista == NULL) {
+    if(*lista == NULL) {
         return;
     }
 
     struct comando *aux = *lista;
+
     while(aux) {
         if (!strcmp(aux->fila, "pessoa")) {
             inserir_final_comando(pessoa, ordem_exec, aux->instrucao);
@@ -280,8 +281,8 @@ void separar_comandos(struct comando **lista, struct comando **pessoa, struct co
         }
 
         ordem_exec++;
-        aux = (*lista) ? (*lista)->prox : NULL;
         remover_comeco_comando(lista);
+        aux = (*lista);
     }
 
-}
+} 
