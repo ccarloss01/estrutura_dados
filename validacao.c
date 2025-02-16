@@ -230,6 +230,7 @@ int validar_campo(const char *tabela, const char *campo) {
     return 0;
 }
 
+//primeiros campos de campos e valores é o where se houver
 void extrair_update(struct comando *cmd, char tabela[], char campos[][255], char valores[][255]) {
     const char *inst = cmd->instrucao;
     int i, j, k;
