@@ -134,28 +134,28 @@ int extrair_campos(struct comando *cmd, char tabela[][255]) {
 
     for (i = 0; i < len; i++) {
         if (inst[i] == '(' && !copiando) {
-            // Encontrou o '(' -> começa a copiar
             copiando = 1;
             continue;
         }
         if (copiando) {
-            // Ao encontrar vírgula, finaliza o campo atual e passa para o próximo
             if (inst[i] == ',') {
                 tabela[k][j] = '\0';
                 k++;
                 j = 0;
                 continue;
             }
-            // Ao encontrar ')', finaliza o último campo e sai
             else if (inst[i] == ')') {
                 tabela[k][j] = '\0';
                 break;
             }
-            // Copia caractere para o campo atual
-            else {
-                tabela[k][j] = inst[i];
-                j++;
-            }
+            // Se for aspas simples, pula
+            if (inst[i] == '\'')
+                continue;
+            // Pula espaços iniciais do campo
+            if (j == 0 && isspace((unsigned char)inst[i]))
+                continue;
+            tabela[k][j] = inst[i];
+            j++;
         }
     }
     return k + 1;
@@ -180,6 +180,7 @@ int extrair_valores(struct comando *cmd, char tabela[][255]) {
         if (copiando) {
             if (inst[i] == '\'') {
                 in_quotes = !in_quotes;
+                continue; // Pula a aspa sem copiar
             }
             if (inst[i] == ',' && !in_quotes) {
                 tabela[k][j] = '\0';
@@ -191,10 +192,11 @@ int extrair_valores(struct comando *cmd, char tabela[][255]) {
                 tabela[k][j] = '\0';
                 break;
             }
-            else {
-                tabela[k][j] = inst[i];
-                j++;
-            }
+            // Pula espaços iniciais do campo
+            if (j == 0 && isspace((unsigned char)inst[i]))
+                continue;
+            tabela[k][j] = inst[i];
+            j++;
         }
     }
     return k + 1;
