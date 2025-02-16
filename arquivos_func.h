@@ -26,4 +26,8 @@ void armazenar_dados_pet(struct pet *lista, FILE *f);
 
 struct pet *ler_dados_pets();
 
+void armazenar_dados(struct pessoa *l_pessoa, FILE *f_pessoa,
+    struct tipo_de_pet *l_tipo_pet, FILE *f_tipo_pet,
+    struct pet *l_pet, FILE *f_pet);
+
 #endif

@@ -86,7 +86,7 @@ void armazenar_dados_tipo_pet(struct tipo_de_pet *lista, FILE *f) {
 
 struct tipo_de_pet *ler_dados_tipo_pets() {
 
-    FILE *arquivo = abrir_arquivo("tipo_de_pet.bin");
+    FILE *arquivo = abrir_arquivo("tipo_pet.bin");
 
     fseek(arquivo, 0, SEEK_END);
     int len = ftell(arquivo) / sizeof(struct tipo_de_pet);
@@ -133,3 +133,12 @@ struct pet *ler_dados_pets() {
     return lista;
 }
 
+void armazenar_dados(struct pessoa *l_pessoa, FILE *f_pessoa,
+    struct tipo_de_pet *l_tipo_pet, FILE *f_tipo_pet,
+    struct pet *l_pet, FILE *f_pet) {
+
+    armazenar_dados_pessoas(l_pessoa, f_pessoa);
+    armazenar_dados_tipo_pet(l_tipo_pet, f_tipo_pet);
+    armazenar_dados_pet(l_pet, f_pet);
+
+}
