@@ -108,6 +108,27 @@ int buscar_pessoa_pet(struct pet *lista, char codigo[]) {
     }
 }
 
+void remover_comeco_pessoa(struct pessoa **lista) {
+    if(*lista == NULL) {
+        return;
+    }
+
+    struct pessoa *aux = *lista;
+    *lista = (*lista)->prox;
+    if(*lista) {
+        (*lista)->ant = NULL;
+    }
+    free(aux);
+}
+
+void limpar_lista_pessoa(struct pessoa **lista) {
+
+    while(*lista != NULL) {
+        remover_comeco_pessoa(lista);
+    }
+
+}
+
 // Métodos Lista Tipo de Pet
 void inserir_final_tipo_pet(struct tipo_de_pet **lista, char codigo[], char descricao[]) {
     
@@ -197,6 +218,27 @@ int buscar_tipo_pet_pet(struct pet *lista, char codigo[]) {
     } else {
         return 0;
     }
+}
+
+void remover_comeco_tipo_pet(struct tipo_de_pet **lista) {
+    if(*lista == NULL) {
+        return;
+    }
+
+    struct tipo_de_pet *aux = *lista;
+    *lista = (*lista)->prox;
+    if(*lista) {
+        (*lista)->ant = NULL;
+    }
+    free(aux);
+}
+
+void limpar_lista_tipo_pet(struct tipo_de_pet **lista) {
+
+    while(*lista != NULL) {
+        remover_comeco_tipo_pet(lista);
+    }
+
 }
 
 // Métodos Lista Pet
@@ -314,6 +356,35 @@ void atualizar_pet(struct pet *lista, char codigo[], char nome[], char codigo_ti
     strcpy(aux->nome, nome);
     strcpy(aux->codigo_tipo, codigo_tipo);
     strcpy(aux->codigo_pes, codigo_pes);
+}
+
+void remover_comeco_pet(struct pet **lista) {
+    if(*lista == NULL) {
+        return;
+    }
+
+    struct pet *aux = *lista;
+    *lista = (*lista)->prox;
+    if(*lista) {
+        (*lista)->ant = NULL;
+    }
+    free(aux);
+}
+
+void limpar_lista_pet(struct pet **lista) {
+
+    while(*lista != NULL) {
+        remover_comeco_pet(lista);
+    }
+
+}
+
+void limpar_listas(struct pessoa **pessoa, struct tipo_de_pet **tipo_pets, struct pet **pets) {
+
+    limpar_lista_pessoa(pessoa);
+    limpar_lista_tipo_pet(tipo_pets);
+    limpar_lista_pet(pets);
+
 }
 
 // Métodos Lista Comando

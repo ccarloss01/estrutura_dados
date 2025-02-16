@@ -15,6 +15,10 @@ void remover_pessoa(struct pessoa **lista, struct pet *pet, char codigo[]);
 
 void atualizar_pessoa(struct pessoa *lista, char codigo[], char nome[], char fone[], char data_nascimento[], char endereco[]);
 
+void remover_comeco_pessoa(struct pessoa **lista);
+
+void limpar_lista_pessoa(struct pessoa **lista);
+
 int buscar_pessoa_pet(struct pet *lista, char codigo[]);
 
 void inserir_final_tipo_pet(struct tipo_de_pet **lista, char codigo[], char descricao[]);
@@ -24,6 +28,10 @@ struct tipo_de_pet *buscar_tipo_pet(struct tipo_de_pet *lista, char codigo[]);
 void remover_tipo_pet(struct tipo_de_pet **lista, struct pet *pet, char codigo[]);
 
 void atualizar_tipo_pet(struct tipo_de_pet *lista, char codigo[], char descricao[]);
+
+void remover_comeco_tipo_pet(struct tipo_de_pet **lista);
+
+void limpar_lista_tipo_pet(struct tipo_de_pet **lista);
 
 void inserir_final_pet(struct pet **lista, struct pessoa *pessoa, struct tipo_de_pet *tipo_pet,
     char codigo[], char nome[], char codigo_tipo[], char codigo_pes[]);
@@ -38,6 +46,12 @@ struct pet *buscar_pet(struct pet *lista, char codigo[]);
 void remover_pet(struct pet **lista, char codigo[]);
 
 void atualizar_pet(struct pet *lista, char codigo[], char nome[], char codigo_tipo[], char codigo_pes[]);
+
+void remover_comeco_pet(struct pet **lista);
+
+void limpar_lista_pet(struct pet **lista);
+
+void limpar_listas(struct pessoa **pessoa, struct tipo_de_pet **tipo_pets, struct pet **pets);
 
 void inserir_final_comando(struct comando **lista, int ordem_exec, char instrucao[]);
 
