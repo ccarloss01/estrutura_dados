@@ -104,6 +104,7 @@ int validar_comando(struct comando *cmd) {
     return 0;
 }
 
+//valida 1 campo por vez
 int validar_campo(const char *tabela, const char *campo) {
     if (strcmp(tabela, "pessoa") == 0) {
         if (strcmp(campo, "nome") == 0 ||
@@ -126,22 +127,13 @@ int validar_campo(const char *tabela, const char *campo) {
     return 0;
 }
 
-char** extrair_select1(struct comando *cmd) {
-    const char *inst = cmd->instrucao;
-    int len = strlen(inst);
-    int i, j = 0;
-    int copiando = 0;
-    char result[4][255];
-    result[0][0] = inst[15];
-    //if()
-    for (i = 0; i < len; i++) {
-        
-    }
-}
 
+
+// a tabela vai retornar o nome da tabela
+// e o campo e valor vao estar na ordem certa, ex : campo[0] = "nome", valor[0] = "joao"
 void extrair_update(struct comando *cmd, char tabela[], char campos[][255], char valores[][255]) {
     const char *inst = cmd->instrucao;
-    int i = 0, j = 0, k = 0, v = 0;
+    int i = 0, j = 0, k = 0;
     int in_quotes = 0;
     
     // Inicializa as strings
@@ -156,11 +148,21 @@ void extrair_update(struct comando *cmd, char tabela[], char campos[][255], char
     if (p_tabela) {
         p_tabela += 7; // pula "update "
         i = 0;
-        while (p_tabela[i] && !isspace((unsigned char)p_tabela[i]) && i < 254) {
-            tabela[i] = p_tabela[i];
-            i++;
+        // Copia o nome completo da tabela (até encontrar espaço não-entre aspas)
+        if (*p_tabela == '\'') {
+            p_tabela++; // pula a aspa inicial se houver
+            while (p_tabela[i] && p_tabela[i] != '\'' && i < 254) {
+                tabela[i] = p_tabela[i];
+                i++;
+            }
+            tabela[i] = '\0';
+        } else {
+            while (p_tabela[i] && !isspace((unsigned char)p_tabela[i]) && i < 254) {
+                tabela[i] = p_tabela[i];
+                i++;
+            }
+            tabela[i] = '\0';
         }
-        tabela[i] = '\0';
     }
 
     // Extrai campos e valores após "set "
@@ -169,22 +171,21 @@ void extrair_update(struct comando *cmd, char tabela[], char campos[][255], char
         p_set += 4; // pula "set "
         
         while (*p_set) {
-            // Ignora espaços
+            // Ignora espaços iniciais
             while (*p_set && isspace((unsigned char)*p_set))
                 p_set++;
 
-            // Extrai nome do campo
+            // Extrai nome do campo COMPLETO (mantém os espaços internos)
             j = 0;
             while (*p_set && *p_set != '=' && j < 254) {
-                if (!isspace((unsigned char)*p_set))
-                    campos[k][j++] = *p_set;
+                campos[k][j++] = *p_set;
                 p_set++;
             }
             campos[k][j] = '\0';
             
             if (*p_set == '=') p_set++; // Pula o '='
             
-            // Ignora espaços
+            // Ignora espaços iniciais antes do valor
             while (*p_set && isspace((unsigned char)*p_set))
                 p_set++;
             
@@ -192,7 +193,7 @@ void extrair_update(struct comando *cmd, char tabela[], char campos[][255], char
             j = 0;
             if (*p_set == '\'') {
                 in_quotes = 1;
-                p_set++; // Pula aspas iniciais
+                p_set++; // Pula a aspa inicial
             }
             while (*p_set && (in_quotes || (!isspace((unsigned char)*p_set) && *p_set != ',' && *p_set != ';'))) {
                 if (*p_set == '\'') {
@@ -205,8 +206,11 @@ void extrair_update(struct comando *cmd, char tabela[], char campos[][255], char
             valores[k][j] = '\0';
 
             k++;
-            if (*p_set == ',') p_set++; // Pula a vírgula
-            else break;
+            if (*p_set == ',') {
+                p_set++; // Pula a vírgula e continua
+            } else {
+                break;
+            }
         }
     }
 }
@@ -241,10 +245,14 @@ void extrair_delete(struct comando *cmd, char tabela[][255]) {
         // Ignora espaços
         while (*pWhere && isspace((unsigned char)*pWhere))
             pWhere++;
-        // Campo: pega a primeira letra do campo
-        if (*pWhere) {
-            tabela[2][0] = *pWhere;
-            tabela[2][1] = '\0';
+        // Campo: extrai o nome completo do campo
+        {
+            int j = 0;
+            while (*pWhere && !isspace((unsigned char)*pWhere) && *pWhere != '=' && j < 254) {
+                tabela[2][j++] = *pWhere;
+                pWhere++;
+            }
+            tabela[2][j] = '\0';
         }
         // Procura o '=' para extrair o valor
         const char *pEqual = strchr(pWhere, '=');
@@ -292,10 +300,14 @@ void extrair_select(struct comando *cmd, char tabela[][255]) {
         // Ignora espaços
         while (*pWhere && isspace((unsigned char)*pWhere))
             pWhere++;
-        // Campo: pega a primeira letra do campo
-        if (*pWhere) {
-            tabela[2][0] = *pWhere;
-            tabela[2][1] = '\0';
+        // Captura o nome completo do campo (até espaço ou '=')
+        {
+            int j = 0;
+            while (pWhere[j] && !isspace((unsigned char)pWhere[j]) && pWhere[j] != '=' && j < 254) {
+                tabela[2][j] = pWhere[j];
+                j++;
+            }
+            tabela[2][j] = '\0';
         }
         // Procura o '=' para extrair o valor
         const char *pEqual = strchr(pWhere, '=');
@@ -325,9 +337,14 @@ void extrair_select(struct comando *cmd, char tabela[][255]) {
                 while (*pOrder && isspace((unsigned char)*pOrder))
                     pOrder++;
             }
-            if (*pOrder) {
-                tabela[2][0] = *pOrder;
-                tabela[2][1] = '\0';
+            // Captura o nome completo do campo (até espaço ou outro delimitador)
+            {
+                int j = 0;
+                while (pOrder[j] && !isspace((unsigned char)pOrder[j]) && pOrder[j] != ';' && j < 254) {
+                    tabela[2][j] = pOrder[j];
+                    j++;
+                }
+                tabela[2][j] = '\0';
             }
             // Para "order", não há valor associado, então tabela[3] permanece vazia.
         }
