@@ -152,60 +152,60 @@ void extrair_update(struct comando *cmd, char tabela[], char campos[][255], char
     }
 
     // Extrai nome da tabela após "update "
-    const char *pTabela = strstr(inst, "update ");
-    if (pTabela) {
-        pTabela += 7; // pula "update "
+    const char *p_tabela = strstr(inst, "update ");
+    if (p_tabela) {
+        p_tabela += 7; // pula "update "
         i = 0;
-        while (pTabela[i] && !isspace((unsigned char)pTabela[i]) && i < 254) {
-            tabela[i] = pTabela[i];
+        while (p_tabela[i] && !isspace((unsigned char)p_tabela[i]) && i < 254) {
+            tabela[i] = p_tabela[i];
             i++;
         }
         tabela[i] = '\0';
     }
 
     // Extrai campos e valores após "set "
-    const char *pSet = strstr(inst, "set ");
-    if (pSet) {
-        pSet += 4; // pula "set "
+    const char *p_set = strstr(inst, "set ");
+    if (p_set) {
+        p_set += 4; // pula "set "
         
-        while (*pSet) {
+        while (*p_set) {
             // Ignora espaços
-            while (*pSet && isspace((unsigned char)*pSet))
-                pSet++;
+            while (*p_set && isspace((unsigned char)*p_set))
+                p_set++;
 
             // Extrai nome do campo
             j = 0;
-            while (*pSet && *pSet != '=' && j < 254) {
-                if (!isspace((unsigned char)*pSet))
-                    campos[k][j++] = *pSet;
-                pSet++;
+            while (*p_set && *p_set != '=' && j < 254) {
+                if (!isspace((unsigned char)*p_set))
+                    campos[k][j++] = *p_set;
+                p_set++;
             }
             campos[k][j] = '\0';
             
-            if (*pSet == '=') pSet++; // Pula o '='
+            if (*p_set == '=') p_set++; // Pula o '='
             
             // Ignora espaços
-            while (*pSet && isspace((unsigned char)*pSet))
-                pSet++;
+            while (*p_set && isspace((unsigned char)*p_set))
+                p_set++;
             
             // Extrai o valor do campo
             j = 0;
-            if (*pSet == '\'') {
+            if (*p_set == '\'') {
                 in_quotes = 1;
-                pSet++; // Pula aspas iniciais
+                p_set++; // Pula aspas iniciais
             }
-            while (*pSet && (in_quotes || (!isspace((unsigned char)*pSet) && *pSet != ',' && *pSet != ';'))) {
-                if (*pSet == '\'') {
+            while (*p_set && (in_quotes || (!isspace((unsigned char)*p_set) && *p_set != ',' && *p_set != ';'))) {
+                if (*p_set == '\'') {
                     in_quotes = 0; // Fecha a string
                 } else {
-                    valores[k][j++] = *pSet;
+                    valores[k][j++] = *p_set;
                 }
-                pSet++;
+                p_set++;
             }
             valores[k][j] = '\0';
 
             k++;
-            if (*pSet == ',') pSet++; // Pula a vírgula
+            if (*p_set == ',') p_set++; // Pula a vírgula
             else break;
         }
     }
