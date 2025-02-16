@@ -230,7 +230,7 @@ int validar_campo(const char *tabela, const char *campo) {
     return 0;
 }
 
-int extrair_campos_insert(struct comando *cmd, char tabela[][255]) {
+void extrair_update(struct comando *cmd, char tabela[], char campos[][255], char valores[][255]) {
     const char *inst = cmd->instrucao;
     int i, j, k;
     int in_quotes = 0;
@@ -259,59 +259,7 @@ int extrair_campos_insert(struct comando *cmd, char tabela[][255]) {
             while (p_tabela[i] && !isspace((unsigned char)p_tabela[i]) && i < 254) {
                 tabela[i] = p_tabela[i];
                 i++;
-    int len = strlen(inst);
-    int i, j = 0, k = 0;
-    int copiando = 0;
-
-    for (i = 0; i < len; i++) {
-        if (inst[i] == '(' && !copiando) {
-            copiando = 1;
-            continue;
-        }
-        if (copiando) {
-            if (inst[i] == ',') {
-                tabela[k][j] = '\0';
-                k++;
-                j = 0;
-                continue;
             }
-            else if (inst[i] == ')') {
-                tabela[k][j] = '\0';
-                break;
-            }
-            // Se for aspas simples, pula
-            if (inst[i] == '\'')
-                continue;
-            // Pula espaços iniciais do campo
-            if (j == 0 && isspace((unsigned char)inst[i]))
-                continue;
-            tabela[k][j] = inst[i];
-            j++;
-        }
-    }
-    return k + 1;
-}
-
-int extrair_valores_insert(struct comando *cmd, char tabela[][255]) {
-    const char *inst = cmd->instrucao;
-    int len = strlen(inst);
-    int i, j = 0, k = 0;
-    int copiando = 0;
-    int contador_par = 0;
-    int in_quotes = 0;
-
-    for (i = 0; i < len; i++) {
-        if (inst[i] == '(') {
-            contador_par++;
-            if (contador_par == 2) {
-                copiando = 1;
-                continue;
-            }
-        }
-        if (copiando) {
-            if (inst[i] == '\'') {
-                in_quotes = !in_quotes;
-                continue; // Pula a aspa sem copiar
             tabela[i] = '\0';
         }
     }
@@ -395,6 +343,67 @@ int extrair_valores_insert(struct comando *cmd, char tabela[][255]) {
             if (*p_set == ',')
                 p_set++; // pula a vírgula e continua
             else
+                break;
+        }
+    }
+}
+
+int extrair_campos_insert(struct comando *cmd, char tabela[][255]) {
+    const char *inst = cmd->instrucao;
+    int len = strlen(inst);
+    int i, j = 0, k = 0;
+    int copiando = 0;
+
+    for (i = 0; i < len; i++) {
+        if (inst[i] == '(' && !copiando) {
+            copiando = 1;
+            continue;
+        }
+        if (copiando) {
+            if (inst[i] == ',') {
+                tabela[k][j] = '\0';
+                k++;
+                j = 0;
+                continue;
+            }
+            else if (inst[i] == ')') {
+                tabela[k][j] = '\0';
+                break;
+            }
+            // Se for aspas simples, pula
+            if (inst[i] == '\'')
+                continue;
+            // Pula espaços iniciais do campo
+            if (j == 0 && isspace((unsigned char)inst[i]))
+                continue;
+            tabela[k][j] = inst[i];
+            j++;
+        }
+    }
+    return k + 1;
+}
+
+int extrair_valores_insert(struct comando *cmd, char tabela[][255]) {
+    const char *inst = cmd->instrucao;
+    int len = strlen(inst);
+    int i, j = 0, k = 0;
+    int copiando = 0;
+    int contador_par = 0;
+    int in_quotes = 0;
+
+    for (i = 0; i < len; i++) {
+        if (inst[i] == '(') {
+            contador_par++;
+            if (contador_par == 2) {
+                copiando = 1;
+                continue;
+            }
+        }
+        if (copiando) {
+            if (inst[i] == '\'') {
+                in_quotes = !in_quotes;
+                continue; // Pula a aspa sem copiar
+            }
             if (inst[i] == ',' && !in_quotes) {
                 tabela[k][j] = '\0';
                 k++;
