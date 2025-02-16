@@ -166,7 +166,8 @@ int extrair_valores(struct comando *cmd, char tabela[][255]) {
     int len = strlen(inst);
     int i, j = 0, k = 0;
     int copiando = 0;
-    int contador_par = 0; 
+    int contador_par = 0;
+    int in_quotes = 0; 
 
     for (i = 0; i < len; i++) {
         if (inst[i] == '(') {
@@ -177,13 +178,16 @@ int extrair_valores(struct comando *cmd, char tabela[][255]) {
             }
         }
         if (copiando) {
-            if (inst[i] == ',') {
+            if (inst[i] == '\'') {
+                in_quotes = !in_quotes;
+            }
+            if (inst[i] == ',' && !in_quotes) {
                 tabela[k][j] = '\0';
                 k++;
                 j = 0;
                 continue;
             }
-            else if (inst[i] == ')') {
+            else if (inst[i] == ')' && !in_quotes) {
                 tabela[k][j] = '\0';
                 break;
             }
