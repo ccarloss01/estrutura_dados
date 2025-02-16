@@ -139,6 +139,78 @@ char** extrair_select1(struct comando *cmd) {
     }
 }
 
+void extrair_update(struct comando *cmd, char tabela[], char campos[][255], char valores[][255]) {
+    const char *inst = cmd->instrucao;
+    int i = 0, j = 0, k = 0, v = 0;
+    int in_quotes = 0;
+    
+    // Inicializa as strings
+    tabela[0] = '\0';
+    for (i = 0; i < 5; i++) {
+        campos[i][0] = '\0';
+        valores[i][0] = '\0';
+    }
+
+    // Extrai nome da tabela após "update "
+    const char *pTabela = strstr(inst, "update ");
+    if (pTabela) {
+        pTabela += 7; // pula "update "
+        i = 0;
+        while (pTabela[i] && !isspace((unsigned char)pTabela[i]) && i < 254) {
+            tabela[i] = pTabela[i];
+            i++;
+        }
+        tabela[i] = '\0';
+    }
+
+    // Extrai campos e valores após "set "
+    const char *pSet = strstr(inst, "set ");
+    if (pSet) {
+        pSet += 4; // pula "set "
+        
+        while (*pSet) {
+            // Ignora espaços
+            while (*pSet && isspace((unsigned char)*pSet))
+                pSet++;
+
+            // Extrai nome do campo
+            j = 0;
+            while (*pSet && *pSet != '=' && j < 254) {
+                if (!isspace((unsigned char)*pSet))
+                    campos[k][j++] = *pSet;
+                pSet++;
+            }
+            campos[k][j] = '\0';
+            
+            if (*pSet == '=') pSet++; // Pula o '='
+            
+            // Ignora espaços
+            while (*pSet && isspace((unsigned char)*pSet))
+                pSet++;
+            
+            // Extrai o valor do campo
+            j = 0;
+            if (*pSet == '\'') {
+                in_quotes = 1;
+                pSet++; // Pula aspas iniciais
+            }
+            while (*pSet && (in_quotes || (!isspace((unsigned char)*pSet) && *pSet != ',' && *pSet != ';'))) {
+                if (*pSet == '\'') {
+                    in_quotes = 0; // Fecha a string
+                } else {
+                    valores[k][j++] = *pSet;
+                }
+                pSet++;
+            }
+            valores[k][j] = '\0';
+
+            k++;
+            if (*pSet == ',') pSet++; // Pula a vírgula
+            else break;
+        }
+    }
+}
+
 void extrair_delete(struct comando *cmd, char tabela[][255]) {
     const char *inst = cmd->instrucao;
     int i;
