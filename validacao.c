@@ -139,6 +139,57 @@ char** extrair_select1(struct comando *cmd) {
     }
 }
 
+void extrair_delete(struct comando *cmd, char tabela[][255]) {
+    const char *inst = cmd->instrucao;
+    int i;
+
+    // Inicializa todas as linhas da tabela
+    for(i = 0; i < 4; i++){
+        tabela[i][0] = '\0';
+    }
+    
+    // Extrair nome da tabela (após "from ")
+    const char *pFrom = strstr(inst, "from ");
+    if (pFrom) {
+        pFrom += 5; // pula "from "
+        i = 0;
+        while (pFrom[i] && !isspace((unsigned char)pFrom[i]) && i < 254) {
+            tabela[0][i] = pFrom[i];
+            i++;
+        }
+        tabela[0][i] = '\0';
+    }
+    
+    // Verifica se há cláusula "where"
+    const char *pWhere = strstr(inst, "where");
+    if (pWhere) {
+        tabela[1][0] = 'w';
+        tabela[1][1] = '\0';
+        pWhere += 5; // pula "where"
+        // Ignora espaços
+        while (*pWhere && isspace((unsigned char)*pWhere))
+            pWhere++;
+        // Campo: pega a primeira letra do campo
+        if (*pWhere) {
+            tabela[2][0] = *pWhere;
+            tabela[2][1] = '\0';
+        }
+        // Procura o '=' para extrair o valor
+        const char *pEqual = strchr(pWhere, '=');
+        if (pEqual) {
+            pEqual++; // pula o '='
+            while (*pEqual && isspace((unsigned char)*pEqual))
+                pEqual++;
+            int j = 0;
+            while (pEqual[j] && !isspace((unsigned char)pEqual[j]) && pEqual[j] != ';' && j < 254) {
+                tabela[3][j] = pEqual[j];
+                j++;
+            }
+            tabela[3][j] = '\0';
+        }
+    }
+}
+
 void extrair_select(struct comando *cmd, char tabela[][255]) {
     const char *inst = cmd->instrucao;
     int i;
