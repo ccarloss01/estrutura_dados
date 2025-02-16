@@ -142,3 +142,9 @@ void armazenar_dados(struct pessoa *l_pessoa, FILE *f_pessoa,
     armazenar_dados_pet(l_pet, f_pet);
 
 }
+
+void fechar_arquivos(FILE *f, FILE *f1, FILE *f2) {
+    fclose(f);
+    fclose(f1);
+    fclose(f2);
+}

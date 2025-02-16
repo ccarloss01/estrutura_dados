@@ -30,4 +30,6 @@ void armazenar_dados(struct pessoa *l_pessoa, FILE *f_pessoa,
     struct tipo_de_pet *l_tipo_pet, FILE *f_tipo_pet,
     struct pet *l_pet, FILE *f_pet);
 
+void fechar_arquivos(FILE *f, FILE *f1, FILE *f2);
+
 #endif

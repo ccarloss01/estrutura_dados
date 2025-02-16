@@ -1,59 +1,131 @@
 #include "validacao.h"
 
-#include <stdio.h>
+#include <ctype.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "comando.h"
+int validar_instrucao(struct comando *comando) {
 
-int validar_instrucao(struct comando *comando, char tipo[]) {
-
-    char *inst = comando->instrucao;
-
-    int offset = strlen(tipo);
-
-    if (strncmp(inst, tipo, offset)) {
+    if(validar_comando(comando) == 0) {
         return 0;
     }
 
-    inst += offset + 1;
-
-    char tabela[10];
-    strcpy(tabela, validar_tabela(inst));
-
-    if (!strcmp(tabela, "")) {
-        return 0;
+    if(strstr(comando->instrucao, "pessoa")) {
+        strcpy(comando->fila, "pessoa");
+    } else if(strstr(comando->instrucao, "tipo_pet")) {
+        strcpy(comando->fila, "tipo_pet");
+    } else if(strstr(comando->instrucao, "pet")) {
+        strcpy(comando->fila, "pet");
     }
-
-    strcpy(comando->fila, tabela);
-
-
 
     return 1;
 
 }
 
-char *validar_tabela(char *inst) {
-
-    if (!strncmp(inst, "pessoa", 6)) {
-        return "pessoa";
-    } else if (!strncmp(inst, "tipo_pet", 8)) {
-        return "tipo_pet";
-    } else if (!strncmp(inst, "pet", 3)) {
-        return "pet";
-    }
-
-    return "";
-}
-
 int validar_insert(struct comando *cmd) {
     if(strstr(cmd->instrucao, "values(")) {
+        char campos[5][255];
+        char valores[5][255];
+
+        inicializar_tabela(campos, 5);
+        inicializar_tabela(valores, 5);
+
+        extrair_campos_insert(cmd, campos);
+        extrair_valores_insert(cmd, valores);
+
+
         if (strstr(cmd->instrucao, "tipo_pet(")) {
+
+            int codigo = 0;
+            int descricao = 0;
+
+            for(int i = 0; i < 2; i++) {
+                if(strcmp(campos[i], "codigo") == 0) {
+                    codigo = 1;
+                    if(strcmp(valores[i], "") == 0) {
+                        return 0;
+                    }
+                } else if(strcmp(campos[i], "descricao") == 0) {
+                    descricao = 1;
+                    if(strcmp(valores[i], "") == 0) {
+                        return 0;
+                    }
+                }
+            }
+
+            if(!codigo || !descricao) {
+                return 0;
+            }
+
             return 1;
         }
         if (strstr(cmd->instrucao, "pet(")) {
+
+            int codigo = 0;
+            int nome = 0;
+            int codigo_pes = 0;
+            int codigo_tipo = 0;
+
+            for(int i = 0; i < 4; i++) {
+                if(strcmp(campos[i], "codigo") == 0) {
+                    codigo = 1;
+                    if(strcmp(valores[i], "") == 0) {
+                        return 0;
+                    }
+                } else if(strcmp(campos[i], "nome") == 0) {
+                    nome = 1;
+                    if(strcmp(valores[i], "") == 0) {
+                        return 0;
+                    }
+                } else if(strcmp(campos[i], "codigo_cli") == 0) {
+                    codigo_pes = 1;
+                    if(strcmp(valores[i], "") == 0) {
+                        return 0;
+                    }
+                } else if(strcmp(campos[i], "codigo_tipo") == 0) {
+                    codigo_tipo = 1;
+                    if(strcmp(valores[i], "") == 0) {
+                        return 0;
+                    }
+                }
+            }
+
+            if(!codigo || !nome || !codigo_pes || !codigo_tipo) {
+                return 0;
+            }
+
             return 1;
         }
         if (strstr(cmd->instrucao, "pessoa(")) {
+
+            int codigo = 0;
+            int nome = 0;
+            int data_nascimento = 0;
+
+            for(int i = 0; i < 5; i++) {
+                if(strcmp(campos[i], "codigo") == 0) {
+                    codigo = 1;
+                    if(strcmp(valores[i], "") == 0) {
+                        return 0;
+                    }
+                } else if(strcmp(campos[i], "nome") == 0) {
+                    nome = 1;
+                    if(strcmp(valores[i], "") == 0) {
+                        return 0;
+                    }
+                } else if(strcmp(campos[i], "data_nascimento") == 0) {
+                    data_nascimento = 1;
+                    if(strcmp(valores[i], "") == 0) {
+                        return 0;
+                    }
+                }
+            }
+
+            if(!codigo || !nome || !data_nascimento) {
+                return 0;
+            }
+
             return 1;
         }
     }
@@ -61,17 +133,49 @@ int validar_insert(struct comando *cmd) {
 }
 
 int validar_select(struct comando *cmd) {
-    if (strstr(cmd->instrucao, "from")) {
-        return 1;
+    char campos[4][255];
+
+    inicializar_tabela(campos, 4);
+
+    extrair_select(cmd, campos);
+
+    if(strcmp(campos[0], "pessoa") == 0 || strcmp(campos[0], "pet") == 0) {
+
+        if(strcmp(campos[1], "w") == 0 && strcmp(campos[2], "codigo") == 0 && strcmp(campos[3], "") != 0) {
+            return 1;
+        } else if(strcmp(campos[1], "o") == 0 &&
+            (strcmp(campos[2], "codigo") == 0 || strcmp(campos[2], "nome") == 0)) {
+            return 1;
+        }
+
+    } else if(strcmp(campos[0], "tipo_pet") == 0) {
+        if(strcmp(campos[1], "w") == 0 && strcmp(campos[2], "codigo") == 0 && strcmp(campos[3], "") != 0) {
+            return 1;
+        } else if(strcmp(campos[1], "o") == 0 &&
+            (strcmp(campos[2], "codigo") == 0 || strcmp(campos[2], "descricao") == 0)) {
+            return 1;
+        }
     }
+
     return 0;
 }
 
 int validar_delete(struct comando *cmd) {
     
-    if (strstr(cmd->instrucao, "where")) {
-        return 1;
+    char campos[4][255];
+
+    inicializar_tabela(campos, 4);
+
+    extrair_delete(cmd, campos);
+
+    if(strcmp(campos[0], "pessoa") == 0 || strcmp(campos[0], "pet") == 0 || strcmp(campos[0], "tipo_pet") == 0) {
+
+        if(strcmp(campos[1], "w") == 0 && strcmp(campos[2], "codigo") == 0 && strcmp(campos[3], "") != 0) {
+            return 1;
+        }
+
     }
+
     return 0;
 }
 
@@ -93,7 +197,7 @@ int validar_comando(struct comando *cmd) {
         return validar_insert(cmd);
     }
     else if (strncmp(cmd->instrucao, "select * from ", 13) == 0) {
-        return 1;
+        return validar_select(cmd);
     }
     else if (strncmp(cmd->instrucao, "delete from ", 11) == 0) {
         return validar_delete(cmd);
@@ -104,7 +208,6 @@ int validar_comando(struct comando *cmd) {
     return 0;
 }
 
-//valida 1 campo por vez
 int validar_campo(const char *tabela, const char *campo) {
     if (strcmp(tabela, "pessoa") == 0) {
         if (strcmp(campo, "nome") == 0 ||
@@ -127,92 +230,80 @@ int validar_campo(const char *tabela, const char *campo) {
     return 0;
 }
 
-
-
-// a tabela vai retornar o nome da tabela
-// e o campo e valor vao estar na ordem certa, ex : campo[0] = "nome", valor[0] = "joao"
-void extrair_update(struct comando *cmd, char tabela[], char campos[][255], char valores[][255]) {
+int extrair_campos_insert(struct comando *cmd, char tabela[][255]) {
     const char *inst = cmd->instrucao;
-    int i = 0, j = 0, k = 0;
-    int in_quotes = 0;
-    
-    // Inicializa as strings
-    tabela[0] = '\0';
-    for (i = 0; i < 5; i++) {
-        campos[i][0] = '\0';
-        valores[i][0] = '\0';
-    }
+    int len = strlen(inst);
+    int i, j = 0, k = 0;
+    int copiando = 0;
 
-    // Extrai nome da tabela após "update "
-    const char *p_tabela = strstr(inst, "update ");
-    if (p_tabela) {
-        p_tabela += 7; // pula "update "
-        i = 0;
-        // Copia o nome completo da tabela (até encontrar espaço não-entre aspas)
-        if (*p_tabela == '\'') {
-            p_tabela++; // pula a aspa inicial se houver
-            while (p_tabela[i] && p_tabela[i] != '\'' && i < 254) {
-                tabela[i] = p_tabela[i];
-                i++;
-            }
-            tabela[i] = '\0';
-        } else {
-            while (p_tabela[i] && !isspace((unsigned char)p_tabela[i]) && i < 254) {
-                tabela[i] = p_tabela[i];
-                i++;
-            }
-            tabela[i] = '\0';
+    for (i = 0; i < len; i++) {
+        if (inst[i] == '(' && !copiando) {
+            copiando = 1;
+            continue;
         }
-    }
-
-    // Extrai campos e valores após "set "
-    const char *p_set = strstr(inst, "set ");
-    if (p_set) {
-        p_set += 4; // pula "set "
-        
-        while (*p_set) {
-            // Ignora espaços iniciais
-            while (*p_set && isspace((unsigned char)*p_set))
-                p_set++;
-
-            // Extrai nome do campo COMPLETO (mantém os espaços internos)
-            j = 0;
-            while (*p_set && *p_set != '=' && j < 254) {
-                campos[k][j++] = *p_set;
-                p_set++;
+        if (copiando) {
+            if (inst[i] == ',') {
+                tabela[k][j] = '\0';
+                k++;
+                j = 0;
+                continue;
             }
-            campos[k][j] = '\0';
-            
-            if (*p_set == '=') p_set++; // Pula o '='
-            
-            // Ignora espaços iniciais antes do valor
-            while (*p_set && isspace((unsigned char)*p_set))
-                p_set++;
-            
-            // Extrai o valor do campo
-            j = 0;
-            if (*p_set == '\'') {
-                in_quotes = 1;
-                p_set++; // Pula a aspa inicial
-            }
-            while (*p_set && (in_quotes || (!isspace((unsigned char)*p_set) && *p_set != ',' && *p_set != ';'))) {
-                if (*p_set == '\'') {
-                    in_quotes = 0; // Fecha a string
-                } else {
-                    valores[k][j++] = *p_set;
-                }
-                p_set++;
-            }
-            valores[k][j] = '\0';
-
-            k++;
-            if (*p_set == ',') {
-                p_set++; // Pula a vírgula e continua
-            } else {
+            else if (inst[i] == ')') {
+                tabela[k][j] = '\0';
                 break;
             }
+            // Se for aspas simples, pula
+            if (inst[i] == '\'')
+                continue;
+            // Pula espaços iniciais do campo
+            if (j == 0 && isspace((unsigned char)inst[i]))
+                continue;
+            tabela[k][j] = inst[i];
+            j++;
         }
     }
+    return k + 1;
+}
+
+int extrair_valores_insert(struct comando *cmd, char tabela[][255]) {
+    const char *inst = cmd->instrucao;
+    int len = strlen(inst);
+    int i, j = 0, k = 0;
+    int copiando = 0;
+    int contador_par = 0;
+    int in_quotes = 0;
+
+    for (i = 0; i < len; i++) {
+        if (inst[i] == '(') {
+            contador_par++;
+            if (contador_par == 2) {
+                copiando = 1;
+                continue;
+            }
+        }
+        if (copiando) {
+            if (inst[i] == '\'') {
+                in_quotes = !in_quotes;
+                continue; // Pula a aspa sem copiar
+            }
+            if (inst[i] == ',' && !in_quotes) {
+                tabela[k][j] = '\0';
+                k++;
+                j = 0;
+                continue;
+            }
+            else if (inst[i] == ')' && !in_quotes) {
+                tabela[k][j] = '\0';
+                break;
+            }
+            // Pula espaços iniciais do campo
+            if (j == 0 && isspace((unsigned char)inst[i]))
+                continue;
+            tabela[k][j] = inst[i];
+            j++;
+        }
+    }
+    return k + 1;
 }
 
 void extrair_delete(struct comando *cmd, char tabela[][255]) {
@@ -223,7 +314,7 @@ void extrair_delete(struct comando *cmd, char tabela[][255]) {
     for(i = 0; i < 4; i++){
         tabela[i][0] = '\0';
     }
-    
+
     // Extrair nome da tabela (após "from ")
     const char *pFrom = strstr(inst, "from ");
     if (pFrom) {
@@ -235,7 +326,7 @@ void extrair_delete(struct comando *cmd, char tabela[][255]) {
         }
         tabela[0][i] = '\0';
     }
-    
+
     // Verifica se há cláusula "where"
     const char *pWhere = strstr(inst, "where");
     if (pWhere) {
@@ -278,7 +369,7 @@ void extrair_select(struct comando *cmd, char tabela[][255]) {
     for(i = 0; i < 4; i++){
         tabela[i][0] = '\0';
     }
-    
+
     // Extrair nome da tabela (após "from ")
     const char *pFrom = strstr(inst, "from ");
     if (pFrom) {
@@ -290,7 +381,7 @@ void extrair_select(struct comando *cmd, char tabela[][255]) {
         }
         tabela[0][i] = '\0';
     }
-    
+
     // Verifica se há cláusula "where"
     const char *pWhere = strstr(inst, "where");
     if (pWhere) {
@@ -351,78 +442,94 @@ void extrair_select(struct comando *cmd, char tabela[][255]) {
     }
 }
 
-int extrair_campos(struct comando *cmd, char tabela[][255]) {
+// a tabela vai retornar o nome da tabela
+// e o campo e valor vao estar na ordem certa, ex : campo[0] = "nome", valor[0] = "joao"
+void extrair_update(struct comando *cmd, char tabela[], char campos[][255], char valores[][255]) {
     const char *inst = cmd->instrucao;
-    int len = strlen(inst);
-    int i, j = 0, k = 0;
-    int copiando = 0;
+    int i = 0, j = 0, k = 0;
+    int in_quotes = 0;
 
-    for (i = 0; i < len; i++) {
-        if (inst[i] == '(' && !copiando) {
-            copiando = 1;
-            continue;
-        }
-        if (copiando) {
-            if (inst[i] == ',') {
-                tabela[k][j] = '\0';
-                k++;
-                j = 0;
-                continue;
+    // Inicializa as strings
+    tabela[0] = '\0';
+    for (i = 0; i < 5; i++) {
+        campos[i][0] = '\0';
+        valores[i][0] = '\0';
+    }
+
+    // Extrai nome da tabela após "update "
+    const char *p_tabela = strstr(inst, "update ");
+    if (p_tabela) {
+        p_tabela += 7; // pula "update "
+        i = 0;
+        // Copia o nome completo da tabela (até encontrar espaço não-entre aspas)
+        if (*p_tabela == '\'') {
+            p_tabela++; // pula a aspa inicial se houver
+            while (p_tabela[i] && p_tabela[i] != '\'' && i < 254) {
+                tabela[i] = p_tabela[i];
+                i++;
             }
-            else if (inst[i] == ')') {
-                tabela[k][j] = '\0';
-                break;
+            tabela[i] = '\0';
+        } else {
+            while (p_tabela[i] && !isspace((unsigned char)p_tabela[i]) && i < 254) {
+                tabela[i] = p_tabela[i];
+                i++;
             }
-            // Se for aspas simples, pula
-            if (inst[i] == '\'')
-                continue;
-            // Pula espaços iniciais do campo
-            if (j == 0 && isspace((unsigned char)inst[i]))
-                continue;
-            tabela[k][j] = inst[i];
-            j++;
+            tabela[i] = '\0';
         }
     }
-    return k + 1;
+
+    // Extrai campos e valores após "set "
+    const char *p_set = strstr(inst, "set ");
+    if (p_set) {
+        p_set += 4; // pula "set "
+
+        while (*p_set) {
+            // Ignora espaços iniciais
+            while (*p_set && isspace((unsigned char)*p_set))
+                p_set++;
+
+            // Extrai nome do campo COMPLETO (mantém os espaços internos)
+            j = 0;
+            while (*p_set && *p_set != '=' && j < 254) {
+                campos[k][j++] = *p_set;
+                p_set++;
+            }
+            campos[k][j] = '\0';
+
+            if (*p_set == '=') p_set++; // Pula o '='
+
+            // Ignora espaços iniciais antes do valor
+            while (*p_set && isspace((unsigned char)*p_set))
+                p_set++;
+
+            // Extrai o valor do campo
+            j = 0;
+            if (*p_set == '\'') {
+                in_quotes = 1;
+                p_set++; // Pula a aspa inicial
+            }
+            while (*p_set && (in_quotes || (!isspace((unsigned char)*p_set) && *p_set != ',' && *p_set != ';'))) {
+                if (*p_set == '\'') {
+                    in_quotes = 0; // Fecha a string
+                } else {
+                    valores[k][j++] = *p_set;
+                }
+                p_set++;
+            }
+            valores[k][j] = '\0';
+
+            k++;
+            if (*p_set == ',') {
+                p_set++; // Pula a vírgula e continua
+            } else {
+                break;
+            }
+        }
+    }
 }
 
-int extrair_valores(struct comando *cmd, char tabela[][255]) {
-    const char *inst = cmd->instrucao;
-    int len = strlen(inst);
-    int i, j = 0, k = 0;
-    int copiando = 0;
-    int contador_par = 0;
-    int in_quotes = 0; 
-
-    for (i = 0; i < len; i++) {
-        if (inst[i] == '(') {
-            contador_par++;
-            if (contador_par == 2) {
-                copiando = 1;
-                continue;
-            }
-        }
-        if (copiando) {
-            if (inst[i] == '\'') {
-                in_quotes = !in_quotes;
-                continue; // Pula a aspa sem copiar
-            }
-            if (inst[i] == ',' && !in_quotes) {
-                tabela[k][j] = '\0';
-                k++;
-                j = 0;
-                continue;
-            }
-            else if (inst[i] == ')' && !in_quotes) {
-                tabela[k][j] = '\0';
-                break;
-            }
-            // Pula espaços iniciais do campo
-            if (j == 0 && isspace((unsigned char)inst[i]))
-                continue;
-            tabela[k][j] = inst[i];
-            j++;
-        }
+void inicializar_tabela(char tabela[][255], int tam) {
+    for(int i = 0; i < tam; i++) {
+        strcpy(tabela[i], "");
     }
-    return k + 1;
 }

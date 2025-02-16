@@ -70,11 +70,13 @@ void transf_lista_arvore_pessoa_nome(struct arv_pessoa **raiz, struct pessoa *li
 }
 
 void imprimir_pessoa(struct pessoa *pessoa) {
-    printf("Código: %s", pessoa->codigo);
-    printf("\n- %s", pessoa->nome);
-    printf("\n- %s", pessoa->fone);
-    printf("\n- %s", pessoa->data_nascimento);
-    printf("\n- %s\n", pessoa->endereco);
+    if(pessoa) {
+        printf("Codigo: %s", pessoa->codigo);
+        printf("\n- %s", pessoa->nome);
+        printf("\n- %s", pessoa->fone);
+        printf("\n- %s", pessoa->data_nascimento);
+        printf("\n- %s\n", pessoa->endereco);
+    }
 }
 
 void imprimir_arvore_pessoa(struct arv_pessoa *raiz) {
@@ -85,6 +87,23 @@ void imprimir_arvore_pessoa(struct arv_pessoa *raiz) {
     imprimir_arvore_pessoa(raiz->esq);
     imprimir_pessoa(raiz->pessoa);
     imprimir_arvore_pessoa(raiz->dir);
+}
+
+struct arv_pessoa *limpar_arvore_pessoa(struct arv_pessoa *raiz) {
+    if(raiz == NULL) {
+        return NULL;
+    }
+
+    if(raiz->esq) {
+        raiz->esq = limpar_arvore_pessoa(raiz->esq);
+    }
+    if(raiz->dir){
+        raiz->dir = limpar_arvore_pessoa(raiz->dir);
+    }
+
+    free(raiz);
+    return NULL;
+
 }
 
 struct arv_tipo_de_pet *inserir_arvore_tipo_pet_codigo(struct arv_tipo_de_pet *raiz, struct tipo_de_pet *tipo_de_pet) {
@@ -102,7 +121,7 @@ struct arv_tipo_de_pet *inserir_arvore_tipo_pet_codigo(struct arv_tipo_de_pet *r
 
     if (atoi(tipo_de_pet->codigo) > atoi(raiz->tipo_de_pet->codigo)) {
         raiz->dir = inserir_arvore_tipo_pet_codigo(raiz->dir, tipo_de_pet);
-    } else if (atoi(tipo_de_pet->codigo) < atoi(raiz->tipo_de_pet->codigo)) {
+    } else if(atoi(tipo_de_pet->codigo) < atoi(raiz->tipo_de_pet->codigo)) {
         raiz->esq = inserir_arvore_tipo_pet_codigo(raiz->esq, tipo_de_pet);
     }
 
@@ -112,10 +131,6 @@ struct arv_tipo_de_pet *inserir_arvore_tipo_pet_codigo(struct arv_tipo_de_pet *r
 struct arv_tipo_de_pet *inserir_arvore_tipo_pet_descricao(struct arv_tipo_de_pet *raiz, struct tipo_de_pet *tipo_de_pet) {
     if (raiz == NULL) {
         struct arv_tipo_de_pet *novo = malloc(sizeof(struct arv_tipo_de_pet));
-        if (novo == NULL) {
-            fprintf(stderr, "Erro de alocacao\n");
-            exit(EXIT_FAILURE);
-        }
         novo->tipo_de_pet = tipo_de_pet;
         novo->dir = NULL;
         novo->esq = NULL;
@@ -146,8 +161,11 @@ void transf_lista_arvore_tipo_pet_descricao(struct arv_tipo_de_pet **raiz, struc
 }
 
 void imprimir_tipo_pet(struct tipo_de_pet *tipo_pet) {
-    printf("Código: %s", tipo_pet->codigo);
-    printf("\n- %s\n", tipo_pet->descricao);
+    if(tipo_pet) {
+        printf("Codigo: %s", tipo_pet->codigo);
+        printf("\n- %s\n", tipo_pet->descricao);
+    }
+
 }
 
 void imprimir_arvore_tipo_pet(struct arv_tipo_de_pet *raiz) {
@@ -158,6 +176,23 @@ void imprimir_arvore_tipo_pet(struct arv_tipo_de_pet *raiz) {
     imprimir_arvore_tipo_pet(raiz->esq);
     imprimir_tipo_pet(raiz->tipo_de_pet);
     imprimir_arvore_tipo_pet(raiz->dir);
+}
+
+struct arv_tipo_de_pet *limpar_arvore_tipo_pet(struct arv_tipo_de_pet *raiz) {
+    if(raiz == NULL) {
+        return NULL;
+    }
+
+    if(raiz->esq) {
+        raiz->esq = limpar_arvore_tipo_pet(raiz->esq);
+    }
+    if(raiz->dir){
+        raiz->dir = limpar_arvore_tipo_pet(raiz->dir);
+    }
+
+    free(raiz);
+    return NULL;
+
 }
 
 struct arv_pet *inserir_arvore_pet_codigo(struct arv_pet *raiz, struct pet *pet) {
@@ -219,10 +254,12 @@ void transf_lista_arvore_pet_nome(struct arv_pet **raiz, struct pet *lista) {
 }
 
 void imprimir_pet(struct pet *pet) {
-    printf("Código: %s", pet->codigo);
-    printf("\n- %s", pet->nome);
-    printf("\n- %s", pet->codigo_pes);
-    printf("\n- %s\n", pet->codigo_tipo);
+    if(pet) {
+        printf("Codigo: %s", pet->codigo);
+        printf("\n- %s", pet->nome);
+        printf("\n- %s", pet->codigo_pes);
+        printf("\n- %s\n", pet->codigo_tipo);
+    }
 }
 
 void imprimir_arvore_pet(struct arv_pet *raiz) {
@@ -233,4 +270,26 @@ void imprimir_arvore_pet(struct arv_pet *raiz) {
     imprimir_arvore_pet(raiz->esq);
     imprimir_pet(raiz->pet);
     imprimir_arvore_pet(raiz->dir);
+}
+
+struct arv_pet *limpar_arvore_pet(struct arv_pet *raiz) {
+    if(raiz == NULL) {
+        return NULL;
+    }
+
+    if(raiz->esq) {
+        raiz->esq = limpar_arvore_pet(raiz->esq);
+    }
+    if(raiz->dir){
+        raiz->dir = limpar_arvore_pet(raiz->dir);
+    }
+
+    free(raiz);
+    return NULL;
+}
+
+void limpar_arvores(struct arv_pet **r_pet, struct arv_tipo_de_pet **r_tipo_pet, struct arv_pessoa **r_pessoa) {
+    *r_pet = limpar_arvore_pet(*r_pet);
+    *r_tipo_pet = limpar_arvore_tipo_pet(*r_tipo_pet);
+    *r_pessoa = limpar_arvore_pessoa(*r_pessoa);
 }

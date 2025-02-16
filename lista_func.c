@@ -3,10 +3,13 @@
 #include "pet.h"
 #include "comando.h"
 #include "lista_func.h"
+#include "validacao.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "arvore_func.h"
 
 // Métodos Lista Pessoa
 void inserir_final_pessoa(struct pessoa **lista, char codigo[], char nome[], char fone[], char data_nascimento[], char endereco[]) {
@@ -129,6 +132,14 @@ void limpar_lista_pessoa(struct pessoa **lista) {
 
 }
 
+void imprimir_lista_pessoa(struct pessoa *l_pessoa) {
+    while(l_pessoa != NULL) {
+        imprimir_pessoa(l_pessoa);
+
+        l_pessoa->prox;
+    }
+}
+
 // Métodos Lista Tipo de Pet
 void inserir_final_tipo_pet(struct tipo_de_pet **lista, char codigo[], char descricao[]) {
     
@@ -241,9 +252,16 @@ void limpar_lista_tipo_pet(struct tipo_de_pet **lista) {
 
 }
 
+void imprimir_lista_tipo_pet(struct tipo_de_pet *l_tipo_pet) {
+    while(l_tipo_pet != NULL) {
+        imprimir_tipo_pet(l_tipo_pet);
+
+        l_tipo_pet->prox;
+    }
+}
+
 // Métodos Lista Pet
-void inserir_final_pet(struct pet **lista, struct pessoa *pessoa, struct tipo_de_pet *tipo_pet,
-    char codigo[], char nome[], char codigo_tipo[], char codigo_pes[]) {
+void inserir_final_pet(struct pet **lista, struct pessoa *pessoa, struct tipo_de_pet *tipo_pet, char codigo[], char nome[], char codigo_tipo[], char codigo_pes[]) {
 
     struct pet *aux = buscar_pet(*lista, codigo);
 
@@ -251,8 +269,11 @@ void inserir_final_pet(struct pet **lista, struct pessoa *pessoa, struct tipo_de
         return;
     }
 
-    if(buscar_tipo_pet(tipo_pet, codigo_tipo) == NULL ||
-        buscar_pessoa(pessoa, codigo_pes) == NULL) {
+    if(buscar_tipo_pet(tipo_pet, codigo_tipo) == NULL) {
+        return;
+    }
+
+    if(buscar_pessoa(pessoa, codigo_pes) == NULL) {
         return;
     }
 
@@ -280,9 +301,7 @@ void inserir_final_pet(struct pet **lista, struct pessoa *pessoa, struct tipo_de
 
 }
 
-void inserir_final_pet_sem_verificar(struct pet **lista,
-    char codigo[], char nome[], char codigo_tipo[], char codigo_pes[]) {
-        
+void inserir_final_pet_sem_verificar(struct pet **lista, char codigo[], char nome[], char codigo_tipo[], char codigo_pes[]) {
     struct pet *aux = buscar_pet(*lista, codigo);
 
     if (aux != NULL) {
@@ -379,12 +398,12 @@ void limpar_lista_pet(struct pet **lista) {
 
 }
 
-void limpar_listas(struct pessoa **pessoa, struct tipo_de_pet **tipo_pets, struct pet **pets) {
+void imprimir_lista_pet(struct pet *l_pet) {
+    while(l_pet != NULL) {
+        imprimir_pet(l_pet);
 
-    limpar_lista_pessoa(pessoa);
-    limpar_lista_tipo_pet(tipo_pets);
-    limpar_lista_pet(pets);
-
+        l_pet->prox;
+    }
 }
 
 // Métodos Lista Comando
@@ -427,12 +446,11 @@ void separar_comandos(struct comando **lista, struct comando **pessoa, struct co
 
     int ordem_exec = 1;
 
-    if(*lista == NULL) {
+    if(lista == NULL) {
         return;
     }
 
     struct comando *aux = *lista;
-
     while(aux) {
         if (!strcmp(aux->fila, "pessoa")) {
             inserir_final_comando(pessoa, ordem_exec, aux->instrucao);
@@ -447,4 +465,313 @@ void separar_comandos(struct comando **lista, struct comando **pessoa, struct co
         aux = (*lista);
     }
 
-} 
+}
+
+void limpar_listas(struct pessoa **pessoa, struct tipo_de_pet **tipo_pets, struct pet **pets) {
+
+    limpar_lista_pessoa(pessoa);
+    limpar_lista_tipo_pet(tipo_pets);
+    limpar_lista_pet(pets);
+
+}
+
+void executar_comando_listas(struct comando **c_pessoa, struct comando **c_tipo_pet, struct comando **c_pet,
+    struct pessoa **l_pessoa, struct tipo_de_pet **l_tipo_pet, struct pet **l_pet,
+    struct arv_pessoa **a_pessoa, struct arv_tipo_de_pet **a_tipo_pet, struct arv_pet **a_pet) {
+
+    int ord_exec = 1;
+
+    while(*c_pessoa != NULL || *c_tipo_pet != NULL || *c_pet != NULL) {
+
+        char tipo[20];
+
+        if(*c_pessoa && (*c_pessoa)->ordem_exec == ord_exec) {
+
+            strncpy(tipo, (*c_pessoa)->instrucao, 6);
+
+            if(strcmp(tipo, "insert") == 0) {
+                executar_insert_pessoa(*c_pessoa, l_pessoa);
+            } else if(strcmp(tipo, "select") == 0) {
+                executar_select_pessoa(*c_pessoa, *l_pessoa, a_pessoa);
+            } else if(strcmp(tipo, "delete") == 0) {
+                executar_delete_pessoa(*c_pessoa, l_pessoa, *l_pet);
+            }
+
+            remover_comeco_comando(c_pessoa);
+
+        } else if(*c_tipo_pet && (*c_tipo_pet)->ordem_exec == ord_exec) {
+
+            strncpy(tipo, (*c_tipo_pet)->instrucao, 6);
+
+            if(strcmp(tipo, "insert") == 0) {
+                executar_insert_tipo_pet(*c_tipo_pet, l_tipo_pet);
+            } else if(strcmp(tipo, "select") == 0) {
+                executar_select_tipo_pet(*c_tipo_pet, *l_tipo_pet, a_tipo_pet);
+            } else if(strcmp(tipo, "delete") == 0) {
+                executar_delete_tipo_pet(*c_tipo_pet, l_tipo_pet, *l_pet);
+            }
+
+            remover_comeco_comando(c_tipo_pet);
+
+        } else if(*c_pet && (*c_pet)->ordem_exec == ord_exec) {
+
+            strncpy(tipo, (*c_pet)->instrucao, 6);
+
+            if(strcmp(tipo, "insert") == 0) {
+                executar_insert_pet(*c_pet, l_pet, *l_pessoa, *l_tipo_pet);
+            } else if(strcmp(tipo, "select") == 0) {
+                executar_select_pet(*c_pet, *l_pet, a_pet);
+            } else if(strcmp(tipo, "delete") == 0) {
+                executar_delete_pet(*c_pet, l_pet);
+            }
+
+            remover_comeco_comando(c_pet);
+
+        }
+
+        ord_exec++;
+
+    }
+
+}
+
+void executar_insert_pessoa(struct comando *c_pessoa, struct pessoa **l_pessoa) {
+
+    char campos[5][255];
+    char valores[5][255];
+
+    extrair_campos_insert(c_pessoa, campos);
+    extrair_valores_insert(c_pessoa, valores);
+
+    char codigo[10];
+    char nome[255];
+    char fone[12];
+    strcpy(fone, "");
+    char data_nascimento[11];
+    char endereco[255];
+    strcpy(endereco, "");
+
+    char aux[255];
+
+    for(int i = 0; i < 5; i++) {
+
+        strcpy(aux, campos[i]);
+
+        if(strcmp(aux, "codigo") == 0) {
+            strcpy(codigo, valores[i]);
+        } else if(strcmp(aux, "nome") == 0) {
+            strcpy(nome, valores[i]);
+        } else if(strcmp(aux, "fone") == 0) {
+            strcpy(fone, valores[i]);
+        } else if(strcmp(aux, "data_nascimento") == 0) {
+            strcpy(data_nascimento, valores[i]);
+        } else if(strcmp(aux, "endereco") == 0) {
+            strcpy(endereco, valores[i]);
+        }
+    }
+
+    inserir_final_pessoa(l_pessoa, codigo, nome, fone, data_nascimento, endereco);
+
+}
+
+void executar_insert_tipo_pet(struct comando *c_tipo_pet, struct tipo_de_pet **l_tipo_pet) {
+
+    char campos[2][255];
+    char valores[2][255];
+
+    extrair_campos_insert(c_tipo_pet, campos);
+    extrair_valores_insert(c_tipo_pet, valores);
+
+    char codigo[10];
+    char descricao[255];
+
+    char aux[255];
+
+    for(int i = 0; i < 2; i++) {
+
+        strcpy(aux, campos[i]);
+
+        if(strcmp(aux, "codigo") == 0) {
+            strcpy(codigo, valores[i]);
+        } else if(strcmp(aux, "descricao") == 0) {
+            strcpy(descricao, valores[i]);
+        }
+    }
+
+    inserir_final_tipo_pet(l_tipo_pet, codigo, descricao);
+
+}
+
+void executar_insert_pet(struct comando *c_pet, struct pet **l_pet, struct pessoa *l_pessoa, struct tipo_de_pet *l_tipo_pet) {
+
+    char campos[4][255];
+    char valores[4][255];
+
+    extrair_campos_insert(c_pet, campos);
+    extrair_valores_insert(c_pet, valores);
+
+    char codigo[10];
+    char nome[255];
+    char codigo_pes[12];
+    char codigo_tipo[11];
+
+    char aux[255];
+
+    for(int i = 0; i < 4; i++) {
+
+        strcpy(aux, campos[i]);
+
+        if(strcmp(aux, "codigo") == 0) {
+            strcpy(codigo, valores[i]);
+        } else if(strcmp(aux, "nome") == 0) {
+            strcpy(nome, valores[i]);
+        } else if(strcmp(aux, "codigo_cli") == 0) {
+            strcpy(codigo_pes, valores[i]);
+        } else if(strcmp(aux, "codigo_tipo") == 0) {
+            strcpy(codigo_tipo, valores[i]);
+        }
+    }
+
+    inserir_final_pet(l_pet, l_pessoa, l_tipo_pet, codigo, nome, codigo_tipo, codigo_pes);
+
+}
+
+void executar_select_pessoa(struct comando *c_pessoa, struct pessoa *l_pessoa, struct arv_pessoa **a_pessoa) {
+    char campos[4][255];
+
+    extrair_select(c_pessoa, campos);
+
+    if(strcmp(campos[1], "w") == 0) {
+        struct pessoa *pessoa = buscar_pessoa(l_pessoa, campos[3]);
+        imprimir_pessoa(pessoa);
+
+    } else if(strcmp(campos[1], "o") == 0) {
+
+        *a_pessoa = limpar_arvore_pessoa(*a_pessoa);
+
+        if(strcmp(campos[2], "codigo") == 0) {
+            transf_lista_arvore_pessoa_codigo(a_pessoa, l_pessoa);
+        } else if(strcmp(campos[2], "nome") == 0) {
+            transf_lista_arvore_pessoa_nome(a_pessoa, l_pessoa);
+        }
+
+        imprimir_arvore_pessoa(*a_pessoa);
+    }
+
+}
+
+void executar_select_tipo_pet(struct comando *c_tipo_pet, struct tipo_de_pet *l_tipo_pet, struct arv_tipo_de_pet **a_tipo_pet) {
+
+    char campos[4][255];
+
+    extrair_select(c_tipo_pet, campos);
+
+    if(strcmp(campos[1], "w") == 0) {
+        struct tipo_de_pet *tipo_pet = buscar_tipo_pet(l_tipo_pet, campos[3]);
+        imprimir_tipo_pet(tipo_pet);
+
+    } else if(strcmp(campos[1], "o") == 0) {
+
+        *a_tipo_pet = limpar_arvore_tipo_pet(*a_tipo_pet);
+
+        if(strcmp(campos[2], "codigo") == 0) {
+            transf_lista_arvore_tipo_pet_codigo(a_tipo_pet, l_tipo_pet);
+        } else if(strcmp(campos[2], "descricao") == 0) {
+            transf_lista_arvore_tipo_pet_descricao(a_tipo_pet, l_tipo_pet);
+        }
+
+        imprimir_arvore_tipo_pet(*a_tipo_pet);
+    }
+
+}
+
+void executar_select_pet(struct comando *c_pet, struct pet *l_pet, struct arv_pet **a_pet) {
+
+    char campos[4][255];
+
+    extrair_select(c_pet, campos);
+
+    if(strcmp(campos[1], "w") == 0) {
+        struct pet *pet = buscar_pet(l_pet, campos[3]);
+        imprimir_pet(pet);
+
+    } else if(strcmp(campos[1], "o") == 0) {
+
+        *a_pet = limpar_arvore_pet(*a_pet);
+
+        if(strcmp(campos[2], "codigo") == 0) {
+            transf_lista_arvore_pet_codigo(a_pet, l_pet);
+        } else if(strcmp(campos[2], "nome") == 0) {
+            transf_lista_arvore_pet_nome(a_pet, l_pet);
+        }
+
+        imprimir_arvore_pet(*a_pet);
+    }
+
+}
+
+void executar_delete_pessoa(struct comando *c_pessoa, struct pessoa **l_pessoa, struct pet *pet) {
+    char campos[4][255];
+
+    extrair_delete(c_pessoa, campos);
+
+    remover_pessoa(l_pessoa, pet, campos[3]);
+}
+
+void executar_delete_tipo_pet(struct comando *c_tipo_pet, struct tipo_de_pet **l_tipo_de_pet, struct pet *pet) {
+    char campos[4][255];
+
+    extrair_delete(c_tipo_pet, campos);
+
+    remover_tipo_pet(l_tipo_de_pet, pet, campos[3]);
+}
+
+void executar_delete_pet(struct comando *c_pet, struct pet **l_pet) {
+    char campos[4][255];
+
+    extrair_delete(c_pet, campos);
+
+    remover_pet(l_pet, campos[3]);
+}
+
+void remover_comando(struct comando **comandos, struct comando *comando) {
+
+    struct comando *aux = *comandos;
+
+    while(aux && aux != comando) {
+        aux = aux->prox;
+    }
+
+    if(aux == NULL) {
+        return;
+    }
+
+    free(aux);
+}
+
+void filtrar_comandos(struct comando **comandos) {
+
+    struct comando *aux = *comandos;
+    struct comando *aux2 = NULL;
+
+    while(aux != NULL) {
+
+        aux2 = aux;
+        aux = aux->prox;
+
+        if(validar_instrucao(aux2) == 0) {
+
+            if(aux2->ant == NULL) {
+                *comandos = aux2->prox;
+            } else if(aux2->prox == NULL) {
+                aux2->ant->prox = aux2->prox;
+            } else {
+                aux2->ant->prox = aux2->prox;
+                aux2->prox->ant = aux2->ant;
+            }
+
+            free(aux2);
+        }
+
+    }
+}

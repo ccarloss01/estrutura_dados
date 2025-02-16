@@ -1,7 +1,0 @@
--validação sensitive case
-
-
-
-
-
-vetor['a']

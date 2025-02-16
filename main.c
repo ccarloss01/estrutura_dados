@@ -16,6 +16,8 @@
 
 int main() {
 
+	FILE *script = abrir_arquivo("script.txt");
+
 	FILE *f_pessoa = abrir_arquivo("pessoa.bin");
 	FILE *f_tipo_pet = abrir_arquivo("tipo_pet.bin");
 	FILE *f_pet = abrir_arquivo("pet.bin");
@@ -34,18 +36,20 @@ int main() {
 	struct arv_tipo_de_pet *a_tipo_pet = NULL;
 	struct arv_pet *a_pet = NULL;
 
-	/*
-	 * CÓDIGO PARA FILTRAR AS INSTRUÇÕES
-	 */
+	ler_arquivo(script, &c_geral);
+
+	filtrar_comandos(&c_geral);
 
 	separar_comandos(&c_geral, &c_pessoa, &c_tipo_pet, &c_pet);
 
-	/*
-	 * CÓDIGO PARA EXECUTAR AS INSTRUÇÕES
-	 */
+	executar_comando_listas(&c_pessoa, &c_tipo_pet, &c_pet,
+		&l_pessoa, &l_tipo_pet, &l_pet,
+		&a_pessoa, &a_tipo_pet, &a_pet);
 
 	armazenar_dados(l_pessoa, f_pessoa, l_tipo_pet, f_tipo_pet, l_pet, f_pet);
+	limpar_arvores(&a_pet, &a_tipo_pet, &a_pessoa);
 	limpar_listas(&l_pessoa, &l_tipo_pet, &l_pet);
+	fechar_arquivos(f_pessoa, f_tipo_pet, f_pet);
 
 	return 0;
 }
