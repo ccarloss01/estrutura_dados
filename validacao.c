@@ -126,6 +126,97 @@ int validar_campo(const char *tabela, const char *campo) {
     return 0;
 }
 
+char** extrair_select1(struct comando *cmd) {
+    const char *inst = cmd->instrucao;
+    int len = strlen(inst);
+    int i, j = 0;
+    int copiando = 0;
+    char result[4][255];
+    result[0][0] = inst[15];
+    //if()
+    for (i = 0; i < len; i++) {
+        
+    }
+}
+
+char** extrair_select(struct comando *cmd) {
+    const char *inst = cmd->instrucao;
+    // Aloca array com 4 linhas de 255 chars cada
+    char **result = malloc(4 * sizeof(char *));
+    for (int i = 0; i < 4; i++) {
+        result[i] = malloc(255 * sizeof(char));
+        result[i][0] = '\0';
+    }
+    
+    // Extrair nome da tabela (após "from ")
+    const char *pFrom = strstr(inst, "from ");
+    if (pFrom) {
+        pFrom += 5; // pula "from "
+        int i = 0;
+        while (pFrom[i] && !isspace((unsigned char)pFrom[i])) {
+            result[0][i] = pFrom[i];
+            i++;
+        }
+        result[0][i] = '\0';
+    }
+    
+    // Verifica se há cláusula "where"
+    const char *pWhere = strstr(inst, "where");
+    if (pWhere) {
+        result[1][0] = 'w';
+        result[1][1] = '\0';
+        pWhere += 5;  // pula "where"
+        // Ignora espaços
+        while (*pWhere && isspace((unsigned char)*pWhere))
+            pWhere++;
+        // Campo: pega a primeira letra do campo
+        if (*pWhere) {
+            result[2][0] = *pWhere;
+            result[2][1] = '\0';
+        }
+        // Procura o '=' para extrair o valor
+        const char *pEqual = strchr(pWhere, '=');
+        if (pEqual) {
+            pEqual++; // pula o '='
+            while (*pEqual && isspace((unsigned char)*pEqual))
+                pEqual++;
+            int j = 0;
+            while (pEqual[j] && !isspace((unsigned char)pEqual[j]) && pEqual[j] != ';') {
+                result[3][j] = pEqual[j];
+                j++;
+            }
+            result[3][j] = '\0';
+        }
+    } else {
+        // Se não houver "where", verifica se há "order"
+        const char *pOrder = strstr(inst, "order");
+        if (pOrder) {
+            result[1][0] = 'o';
+            result[1][1] = '\0';
+            pOrder += 5; // pula "order"
+            while (*pOrder && isspace((unsigned char)*pOrder))
+                pOrder++;
+            // Se houver o token "by", pula-o
+            if (strncmp(pOrder, "by", 2) == 0) {
+                pOrder += 2;
+                while (*pOrder && isspace((unsigned char)*pOrder))
+                    pOrder++;
+            }
+            if (*pOrder) {
+                result[2][0] = *pOrder;
+                result[2][1] = '\0';
+            }
+            // Para "order", não há valor associado, então deixamos result[3] vazio.
+        } else {
+            // Se não encontrar nenhuma cláusula, deixa os demais vazios.
+            strcpy(result[1], "");
+            strcpy(result[2], "");
+            strcpy(result[3], "");
+        }
+    }
+    return result;
+}
+
 int extrair_campos(struct comando *cmd, char tabela[][255]) {
     const char *inst = cmd->instrucao;
     int len = strlen(inst);
