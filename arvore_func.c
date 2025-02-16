@@ -28,7 +28,10 @@ struct arv_pessoa *inserir_arvore_pessoa_codigo(struct arv_pessoa *raiz, struct 
         raiz->dir = inserir_arvore_pessoa_codigo(raiz->dir, pessoa);
     } else if (atoi(pessoa->codigo) < atoi(raiz->pessoa->codigo)) {
         raiz->esq = inserir_arvore_pessoa_codigo(raiz->esq, pessoa);
+    } else {
+        fprintf(stderr, "Código duplicado: %s. Inserção rejeitada.\n", pessoa->codigo);
     }
+
 
     return raiz;
 }
