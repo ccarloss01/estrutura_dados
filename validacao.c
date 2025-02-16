@@ -231,6 +231,7 @@ int validar_campo(const char *tabela, const char *campo) {
 }
 
 //primeiros campos de campos e valores é o where se houver
+
 void extrair_update(struct comando *cmd, char tabela[], char campos[][255], char valores[][255]) {
     const char *inst = cmd->instrucao;
     int i, j, k;
@@ -249,43 +250,42 @@ void extrair_update(struct comando *cmd, char tabela[], char campos[][255], char
     if (p_tabela) {
         p_tabela += 7; // pula "update "
         i = 0;
-        if (*p_tabela == '\'') {
-            p_tabela++; // pula a aspa inicial se houver
-            while (p_tabela[i] && p_tabela[i] != '\'' && i < 254) {
-                tabela[i] = p_tabela[i];
-                i++;
-            }
-            tabela[i] = '\0';
-        } else {
-            while (p_tabela[i] && !isspace((unsigned char)p_tabela[i]) && i < 254) {
-                tabela[i] = p_tabela[i];
-                i++;
-            }
-            tabela[i] = '\0';
+        while (p_tabela[i] && !isspace((unsigned char)p_tabela[i]) && i < 254) {
+            tabela[i] = p_tabela[i];
+            i++;
         }
+        tabela[i] = '\0';
     }
 
     // Verifica se há cláusula "where"
     const char *p_where = strstr(inst, "where");
     has_where = (p_where != NULL);
+
     if (has_where) {
         p_where += 5; // pula "where"
-        // Ignora espaços iniciais
         while (*p_where && isspace((unsigned char)*p_where))
-            p_where++;
-        // Extrai campo do WHERE para campos[0]
+            p_where++;  // Ignora espaços
+        
+        // Extrai campo do WHERE
         j = 0;
         while (*p_where && *p_where != '=' && j < 254) {
             campos[0][j++] = *p_where;
             p_where++;
         }
         campos[0][j] = '\0';
-        // Pula o '=' e os espaços seguintes
+
+        // Remove espaços finais do campo
+        while (j > 0 && isspace((unsigned char)campos[0][j - 1])) {
+            campos[0][--j] = '\0';
+        }
+
         if (*p_where == '=')
-            p_where++;
+            p_where++; // pula '='
+        
         while (*p_where && isspace((unsigned char)*p_where))
-            p_where++;
-        // Extrai valor do WHERE para valores[0]
+            p_where++; // Ignora espaços antes do valor
+        
+        // Extrai valor do WHERE
         j = 0;
         while (*p_where && *p_where != ';' && !isspace((unsigned char)*p_where) && j < 254) {
             valores[0][j++] = *p_where;
@@ -298,48 +298,56 @@ void extrair_update(struct comando *cmd, char tabela[], char campos[][255], char
     const char *p_set = strstr(inst, "set ");
     if (p_set) {
         p_set += 4; // pula "set "
-        // Se houver WHERE, os pares de SET iniciam na posição 1; caso contrário, na posição 0.
         k = has_where ? 1 : 0;
-        // Se houver a cláusula WHERE, limite a extração ao trecho anterior a ela.
         const char *end_set = has_where ? strstr(p_set, "where") : NULL;
 
         while (*p_set && (end_set == NULL || p_set < end_set)) {
-            // Ignora espaços iniciais
             while (*p_set && isspace((unsigned char)*p_set))
-                p_set++;
+                p_set++; // Ignora espaços
+
             if (end_set != NULL && p_set >= end_set)
                 break;
-            // Extrai nome do campo (do SET)
+
+            // Extrai nome do campo
             j = 0;
             while (*p_set && *p_set != '=' && j < 254) {
                 campos[k][j++] = *p_set;
                 p_set++;
             }
             campos[k][j] = '\0';
-            
+
+            // Remove espaços finais do nome do campo
+            while (j > 0 && isspace((unsigned char)campos[k][j - 1])) {
+                campos[k][--j] = '\0';
+            }
+
             if (*p_set == '=')
-                p_set++; // pula o '='
+                p_set++; // pula '='
             
-            // Ignora espaços iniciais antes do valor
             while (*p_set && isspace((unsigned char)*p_set))
-                p_set++;
+                p_set++; // Ignora espaços antes do valor
             
             // Extrai o valor do campo do SET
             j = 0;
             if (*p_set == '\'') {
                 in_quotes = 1;
-                p_set++; // pula a aspa inicial
+                p_set++; // pula aspa inicial
             }
             while (*p_set && (in_quotes || (!isspace((unsigned char)*p_set) && *p_set != ',' && *p_set != ';')) && j < 254) {
                 if (*p_set == '\'') {
-                    in_quotes = 0; // fecha a aspa
+                    in_quotes = 0; // fecha aspas
                 } else {
                     valores[k][j++] = *p_set;
                 }
                 p_set++;
             }
             valores[k][j] = '\0';
-            
+
+            // Remove espaços finais do valor
+            while (j > 0 && isspace((unsigned char)valores[k][j - 1])) {
+                valores[k][--j] = '\0';
+            }
+
             k++;
             if (*p_set == ',')
                 p_set++; // pula a vírgula e continua
