@@ -30,6 +30,7 @@ void ler_arquivo(FILE *arquivo, struct comando **lista) {
         transformar_minuscula(linha);
         inserir_final_comando(lista, 0, linha);
     }
+    fclose(arquivo);
 }
 
 void transformar_minuscula(char str[]) {
@@ -66,6 +67,8 @@ struct pessoa *ler_dados_pessoas() {
             pessoas[i].codigo, pessoas[i].nome, pessoas[i].fone, pessoas[i].data_nascimento, pessoas[i].endereco);
     }
 
+    fclose(arquivo);
+
     return lista;
 
 }
@@ -97,6 +100,8 @@ struct tipo_de_pet *ler_dados_tipo_pets() {
         inserir_final_tipo_pet(&lista, tipo_de_pets[i].codigo, tipo_de_pets[i].descricao);
     }
 
+    fclose(arquivo);
+
     return lista;
 
 }
@@ -127,6 +132,8 @@ struct pet *ler_dados_pets() {
     for (int i = 0; i < len; i++) {
         inserir_final_pet_sem_verificar(&lista, pets[i].codigo, pets[i].nome, pets[i].codigo_tipo, pets[i].codigo_pes);
     }
+    
+    fclose(arquivo);
 
     return lista;
 }
