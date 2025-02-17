@@ -27,6 +27,6 @@ void extrair_delete(struct comando *cmd, char tabela[][255]);
 
 void extrair_select(struct comando *cmd, char tabela[][255]);
 
-void extrair_update(struct comando *cmd, char tabela[], char campos[][255], char valores[][255]);
+int extrair_update(struct comando *cmd, char tabela[], char campos[][255], char valores[][255]);
 
 #endif

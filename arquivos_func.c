@@ -38,13 +38,14 @@ void transformar_minuscula(char str[]) {
     }
 }
 
-void armazenar_dados_pessoas(struct pessoa *lista, FILE *f) {
+void armazenar_dados_pessoas(struct pessoa *lista, FILE **f) {
+
+    *f = fopen("pessoa.bin", "wb+");
 
     struct pessoa *aux = lista;
 
     while (aux != NULL) {
-        fseek(f, 0, SEEK_END);
-        fwrite(aux, sizeof(struct pessoa), 1, f);
+        fwrite(aux, sizeof(struct pessoa), 1, *f);
         aux = aux->prox;
     }
 }
@@ -69,13 +70,13 @@ struct pessoa *ler_dados_pessoas() {
 
 }
 
-void armazenar_dados_tipo_pet(struct tipo_de_pet *lista, FILE *f) {
+void armazenar_dados_tipo_pet(struct tipo_de_pet *lista, FILE **f) {
+    *f = fopen("tipo_pet.bin", "wb+");
 
     struct tipo_de_pet *aux = lista;
 
     while (aux != NULL) {
-        fseek(f, 0, SEEK_END);
-        fwrite(aux, sizeof(struct tipo_de_pet), 1, f);
+        fwrite(aux, sizeof(struct tipo_de_pet), 1, *f);
         aux = aux->prox;
     }
 }
@@ -100,13 +101,14 @@ struct tipo_de_pet *ler_dados_tipo_pets() {
 
 }
 
-void armazenar_dados_pet(struct pet *lista, FILE *f) {
+void armazenar_dados_pet(struct pet *lista, FILE **f) {
+
+    *f = fopen("pet.bin", "wb+");
 
     struct pet *aux = lista;
 
     while (aux != NULL) {
-        fseek(f, 0, SEEK_END);
-        fwrite(aux, sizeof(struct pet), 1, f);
+        fwrite(aux, sizeof(struct pet), 1, *f);
         aux = aux->prox;
     }
 }
@@ -129,9 +131,9 @@ struct pet *ler_dados_pets() {
     return lista;
 }
 
-void armazenar_dados(struct pessoa *l_pessoa, FILE *f_pessoa,
-    struct tipo_de_pet *l_tipo_pet, FILE *f_tipo_pet,
-    struct pet *l_pet, FILE *f_pet) {
+void armazenar_dados(struct pessoa *l_pessoa, FILE **f_pessoa,
+    struct tipo_de_pet *l_tipo_pet, FILE **f_tipo_pet,
+    struct pet *l_pet, FILE **f_pet) {
 
     armazenar_dados_pessoas(l_pessoa, f_pessoa);
     armazenar_dados_tipo_pet(l_tipo_pet, f_tipo_pet);

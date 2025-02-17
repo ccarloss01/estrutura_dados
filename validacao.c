@@ -41,6 +41,11 @@ int validar_insert(struct comando *cmd) {
             int descricao = 0;
 
             for(int i = 0; i < 2; i++) {
+
+                if(strcmp(campos[i], "") == 0 && strcmp(valores[i], "") != 0) {
+                    return 0;
+                }
+
                 if(strcmp(campos[i], "codigo") == 0) {
                     codigo = 1;
                     if(strcmp(valores[i], "") == 0) {
@@ -68,6 +73,11 @@ int validar_insert(struct comando *cmd) {
             int codigo_tipo = 0;
 
             for(int i = 0; i < 4; i++) {
+
+                if(strcmp(campos[i], "") == 0 && strcmp(valores[i], "") != 0) {
+                    return 0;
+                }
+
                 if(strcmp(campos[i], "codigo") == 0) {
                     codigo = 1;
                     if(strcmp(valores[i], "") == 0) {
@@ -104,6 +114,11 @@ int validar_insert(struct comando *cmd) {
             int data_nascimento = 0;
 
             for(int i = 0; i < 5; i++) {
+
+                if(strcmp(campos[i], "") == 0 && strcmp(valores[i], "") != 0) {
+                    return 0;
+                }
+
                 if(strcmp(campos[i], "codigo") == 0) {
                     codigo = 1;
                     if(strcmp(valores[i], "") == 0) {
@@ -181,9 +196,70 @@ int validar_delete(struct comando *cmd) {
 
 int validar_update(struct comando *cmd) {
 
-    if (strstr(cmd->instrucao, "set")) {
+    char tabela[20];
+    char campos[5][255];
+    char valores[5][255];
+
+    inicializar_tabela(campos, 5);
+    inicializar_tabela(valores, 5);
+
+    int qtd = extrair_update(cmd, tabela, campos, valores);
+
+    if(strcmp(campos[0], "codigo") != 0 || (strcmp(campos[0], "codigo") == 0 && strcmp(valores[0], "") == 0)) {
+        return 0;
+    }
+
+    if (strcmp(tabela, "pessoa") == 0) {
+
+        for(int i = 1; i < qtd; i++) {
+            if(strcmp(campos[i], "nome") == 0) {
+                if(strcmp(valores[i], "") == 0) {
+                    return 0;
+                }
+            } else if(strcmp(campos[i], "data_nascimento") == 0) {
+                if(strcmp(valores[i], "") == 0) {
+                    return 0;
+                }
+            }
+        }
+
         return 1;
     }
+
+    if (strcmp(tabela, "tipo_pet") == 0) {
+
+        for(int i = 1; i < qtd; i++) {
+            if(strcmp(campos[i], "descricao") == 0) {
+                if(strcmp(valores[i], "") == 0) {
+                    return 0;
+                }
+            }
+        }
+
+        return 1;
+    }
+
+    if (strcmp(tabela, "pet") == 0) {
+
+        for(int i = 1; i < qtd; i++) {
+            if(strcmp(campos[i], "nome") == 0) {
+                if(strcmp(valores[i], "") == 0) {
+                    return 0;
+                }
+            } else if(strcmp(campos[i], "codigo_cli") == 0) {
+                if(strcmp(valores[i], "") == 0) {
+                    return 0;
+                }
+            } else if(strcmp(campos[i], "codigo_tipo") == 0) {
+                if(strcmp(valores[i], "") == 0) {
+                    return 0;
+                }
+            }
+        }
+
+        return 1;
+    }
+
     return 0;
 }
 
@@ -193,16 +269,16 @@ int validar_comando(struct comando *cmd) {
         return 0;
     }
 
-    if (strncmp(cmd->instrucao, "insert into ", 11) == 0) {
+    if (strncmp(cmd->instrucao, "insert into ", 12) == 0) {
         return validar_insert(cmd);
     }
-    else if (strncmp(cmd->instrucao, "select * from ", 13) == 0) {
+    else if (strncmp(cmd->instrucao, "select * from ", 14) == 0) {
         return validar_select(cmd);
     }
-    else if (strncmp(cmd->instrucao, "delete from ", 11) == 0) {
+    else if (strncmp(cmd->instrucao, "delete from ", 12) == 0) {
         return validar_delete(cmd);
     }
-    else if (strncmp(cmd->instrucao, "update ", 11) == 0) {
+    else if (strncmp(cmd->instrucao, "update ", 7) == 0) {
         return validar_update(cmd);
     }
     return 0;
@@ -230,7 +306,6 @@ int validar_campo(const char *tabela, const char *campo) {
     return 0;
 }
 
-//primeiros campos de campos e valores é o where se houver
 int extrair_campos_insert(struct comando *cmd, char tabela[][255]) {
     const char *inst = cmd->instrucao;
     int len = strlen(inst);
@@ -443,12 +518,12 @@ void extrair_select(struct comando *cmd, char tabela[][255]) {
     }
 }
 
-// a tabela vai retornar o nome da tabela
-// e o campo e valor vao estar na ordem certa, ex : campo[0] = "nome", valor[0] = "joao"
-void extrair_update(struct comando *cmd, char tabela[], char campos[][255], char valores[][255]) {
+//primeiros campos de campos e valores é o where se houver
+int extrair_update(struct comando *cmd, char tabela[], char campos[][255], char valores[][255]) {
     const char *inst = cmd->instrucao;
-    int i = 0, j = 0, k = 0;
+    int i, j, k = 0;
     int in_quotes = 0;
+    int has_where = 0;
 
     // Inicializa as strings
     tabela[0] = '\0';
@@ -462,34 +537,65 @@ void extrair_update(struct comando *cmd, char tabela[], char campos[][255], char
     if (p_tabela) {
         p_tabela += 7; // pula "update "
         i = 0;
-        // Copia o nome completo da tabela (até encontrar espaço não-entre aspas)
-        if (*p_tabela == '\'') {
-            p_tabela++; // pula a aspa inicial se houver
-            while (p_tabela[i] && p_tabela[i] != '\'' && i < 254) {
-                tabela[i] = p_tabela[i];
-                i++;
-            }
-            tabela[i] = '\0';
-        } else {
-            while (p_tabela[i] && !isspace((unsigned char)p_tabela[i]) && i < 254) {
-                tabela[i] = p_tabela[i];
-                i++;
-            }
-            tabela[i] = '\0';
+        while (p_tabela[i] && !isspace((unsigned char)p_tabela[i]) && i < 254) {
+            tabela[i] = p_tabela[i];
+            i++;
         }
+        tabela[i] = '\0';
     }
 
-    // Extrai campos e valores após "set "
+    // Verifica se há cláusula "where"
+    const char *p_where = strstr(inst, "where");
+    has_where = (p_where != NULL);
+
+    if (has_where) {
+        p_where += 5; // pula "where"
+        while (*p_where && isspace((unsigned char)*p_where))
+            p_where++;  // Ignora espaços
+
+        // Extrai campo do where
+        j = 0;
+        while (*p_where && *p_where != '=' && j < 254) {
+            campos[0][j++] = *p_where;
+            p_where++;
+        }
+        campos[0][j] = '\0';
+
+        // Remove espaços finais do campo
+        while (j > 0 && isspace((unsigned char)campos[0][j - 1])) {
+            campos[0][--j] = '\0';
+        }
+
+        if (*p_where == '=')
+            p_where++; // pula '='
+
+        while (*p_where && isspace((unsigned char)*p_where))
+            p_where++; // Ignora espaços antes do valor
+
+        // Extrai valor do Where
+        j = 0;
+        while (*p_where && *p_where != ';' && !isspace((unsigned char)*p_where) && j < 254) {
+            valores[0][j++] = *p_where;
+            p_where++;
+        }
+        valores[0][j] = '\0';
+    }
+
+    // Extrai os campos e valores da cláusula "set "
     const char *p_set = strstr(inst, "set ");
     if (p_set) {
         p_set += 4; // pula "set "
+        k = has_where ? 1 : 0;
+        const char *end_set = has_where ? strstr(p_set, "where") : NULL;
 
-        while (*p_set) {
-            // Ignora espaços iniciais
+        while (*p_set && (end_set == NULL || p_set < end_set)) {
             while (*p_set && isspace((unsigned char)*p_set))
-                p_set++;
+                p_set++; // Ignora espaços
 
-            // Extrai nome do campo COMPLETO (mantém os espaços internos)
+            if (end_set != NULL && p_set >= end_set)
+                break;
+
+            // e xtrai nome do campo
             j = 0;
             while (*p_set && *p_set != '=' && j < 254) {
                 campos[k][j++] = *p_set;
@@ -497,21 +603,26 @@ void extrair_update(struct comando *cmd, char tabela[], char campos[][255], char
             }
             campos[k][j] = '\0';
 
-            if (*p_set == '=') p_set++; // Pula o '='
+            // Remove espaços finais do nome do campo
+            while (j > 0 && isspace((unsigned char)campos[k][j - 1])) {
+                campos[k][--j] = '\0';
+            }
 
-            // Ignora espaços iniciais antes do valor
+            if (*p_set == '=')
+                p_set++; // pula '='
+
             while (*p_set && isspace((unsigned char)*p_set))
-                p_set++;
+                p_set++; // Ignora espaços antes do valor
 
-            // Extrai o valor do campo
+            // E=extrai o valor do campo do SET
             j = 0;
             if (*p_set == '\'') {
                 in_quotes = 1;
-                p_set++; // Pula a aspa inicial
+                p_set++; // pula aspa inicial
             }
-            while (*p_set && (in_quotes || (!isspace((unsigned char)*p_set) && *p_set != ',' && *p_set != ';'))) {
+            while (*p_set && (in_quotes || (!isspace((unsigned char)*p_set) && *p_set != ',' && *p_set != ';')) && j < 254) {
                 if (*p_set == '\'') {
-                    in_quotes = 0; // Fecha a string
+                    in_quotes = 0; // fecha aspas
                 } else {
                     valores[k][j++] = *p_set;
                 }
@@ -519,14 +630,20 @@ void extrair_update(struct comando *cmd, char tabela[], char campos[][255], char
             }
             valores[k][j] = '\0';
 
-            k++;
-            if (*p_set == ',') {
-                p_set++; // Pula a vírgula e continua
-            } else {
-                break;
+            // remove espaços finais do valor
+            while (j > 0 && isspace((unsigned char)valores[k][j - 1])) {
+                valores[k][--j] = '\0';
             }
+
+            k++;
+            if (*p_set == ',')
+                p_set++; // pula a vírgula e continua
+            else
+                break;
         }
     }
+
+    return k;
 }
 
 void inicializar_tabela(char tabela[][255], int tam) {

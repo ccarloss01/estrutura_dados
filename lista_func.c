@@ -159,7 +159,6 @@ void inserir_final_tipo_pet(struct tipo_de_pet **lista, char codigo[], char desc
         fprintf(stderr, "Erro ao alocar memória para novo tipo pet\n");
         return;
     }
-
     strcpy(novo_tipo_pet->codigo, codigo);
     strcpy(novo_tipo_pet->descricao, descricao);
     novo_tipo_pet->prox = NULL;
@@ -279,11 +278,7 @@ void inserir_final_pet(struct pet **lista, struct pessoa *pessoa, struct tipo_de
         return;
     }
 
-    if(buscar_tipo_pet(tipo_pet, codigo_tipo) == NULL) {
-        return;
-    }
-
-    if(buscar_pessoa(pessoa, codigo_pes) == NULL) {
+    if(buscar_tipo_pet(tipo_pet, codigo_tipo) == NULL || buscar_pessoa(pessoa, codigo_pes) == NULL) {
         return;
     }
 
@@ -292,6 +287,7 @@ void inserir_final_pet(struct pet **lista, struct pessoa *pessoa, struct tipo_de
         fprintf(stderr, "Erro ao alocar memória para novo pet\n");
         return;
     }
+
     strcpy(novo_pet->codigo, codigo);
     strcpy(novo_pet->nome, nome);
     strcpy(novo_pet->codigo_tipo, codigo_tipo);
@@ -327,7 +323,6 @@ void inserir_final_pet_sem_verificar(struct pet **lista, char codigo[], char nom
         fprintf(stderr, "Erro ao alocar memória para novo pet\n");
         return;
     }
-
     strcpy(novo_pet->codigo, codigo);
     strcpy(novo_pet->nome, nome);
     strcpy(novo_pet->codigo_tipo, codigo_tipo);
@@ -384,10 +379,14 @@ void remover_pet(struct pet **lista, char codigo[]) {
     free(aux);
 }
 
-void atualizar_pet(struct pet *lista, char codigo[], char nome[], char codigo_tipo[], char codigo_pes[]) {
-    struct pet *aux = buscar_pet(lista, codigo);
+void atualizar_pet(struct pet *lista, struct tipo_de_pet *tipo_pet, struct pessoa *pessoa,
+    char codigo[], char nome[], char codigo_tipo[], char codigo_pes[]) {
 
-    if(aux == NULL) {
+    struct pet *aux = buscar_pet(lista, codigo);
+    struct tipo_de_pet *tipo = buscar_tipo_pet(tipo_pet, codigo_tipo);
+    struct pessoa *pes = buscar_pessoa(pessoa, codigo_pes);
+
+    if(aux == NULL || tipo == NULL || pes == NULL) {
         return;
     }
 
@@ -432,7 +431,6 @@ void inserir_final_comando(struct comando **lista, int ordem_exec, char instruca
         fprintf(stderr, "Erro ao alocar memória para inserir final comando\n");
         return;
     }
-
     novo_comando->ordem_exec = ordem_exec;
 
     strcpy(novo_comando->instrucao, instrucao);
@@ -499,9 +497,7 @@ void limpar_listas(struct pessoa **pessoa, struct tipo_de_pet **tipo_pets, struc
 
 }
 
-void executar_comando_listas(struct comando **c_pessoa, struct comando **c_tipo_pet, struct comando **c_pet,
-    struct pessoa **l_pessoa, struct tipo_de_pet **l_tipo_pet, struct pet **l_pet,
-    struct arv_pessoa **a_pessoa, struct arv_tipo_de_pet **a_tipo_pet, struct arv_pet **a_pet) {
+void executar_comando_listas(struct comando **c_pessoa, struct comando **c_tipo_pet, struct comando **c_pet, struct pessoa **l_pessoa, struct tipo_de_pet **l_tipo_pet, struct pet **l_pet, struct arv_pessoa **a_pessoa, struct arv_tipo_de_pet **a_tipo_pet, struct arv_pet **a_pet) {
 
     int ord_exec = 1;
 
@@ -519,6 +515,8 @@ void executar_comando_listas(struct comando **c_pessoa, struct comando **c_tipo_
                 executar_select_pessoa(*c_pessoa, *l_pessoa, a_pessoa);
             } else if(strcmp(tipo, "delete") == 0) {
                 executar_delete_pessoa(*c_pessoa, l_pessoa, *l_pet);
+            } else if(strcmp(tipo, "update") == 0) {
+                executar_update_pessoa(*c_pessoa, *l_pessoa);
             }
 
             remover_comeco_comando(c_pessoa);
@@ -533,6 +531,8 @@ void executar_comando_listas(struct comando **c_pessoa, struct comando **c_tipo_
                 executar_select_tipo_pet(*c_tipo_pet, *l_tipo_pet, a_tipo_pet);
             } else if(strcmp(tipo, "delete") == 0) {
                 executar_delete_tipo_pet(*c_tipo_pet, l_tipo_pet, *l_pet);
+            } else if(strcmp(tipo, "update") == 0) {
+                executar_update_tipo_pet(*c_tipo_pet, *l_tipo_pet);
             }
 
             remover_comeco_comando(c_tipo_pet);
@@ -547,6 +547,8 @@ void executar_comando_listas(struct comando **c_pessoa, struct comando **c_tipo_
                 executar_select_pet(*c_pet, *l_pet, a_pet);
             } else if(strcmp(tipo, "delete") == 0) {
                 executar_delete_pet(*c_pet, l_pet);
+            }  else if(strcmp(tipo, "update") == 0) {
+                executar_update_pet(*c_pet, *l_pet, *l_tipo_pet, *l_pessoa);
             }
 
             remover_comeco_comando(c_pet);
@@ -756,6 +758,107 @@ void executar_delete_pet(struct comando *c_pet, struct pet **l_pet) {
     extrair_delete(c_pet, campos);
 
     remover_pet(l_pet, campos[3]);
+}
+
+void executar_update_pessoa(struct comando *c_pessoa, struct pessoa *l_pessoa) {
+    char tabela[10];
+    char campos[5][255];
+    char valores[5][255];
+
+    char nome[255];
+    char data_nascimento[255];
+    char endereco[255];
+    char fone[255];
+
+    int qtd = extrair_update(c_pessoa, tabela, campos, valores);
+
+    struct pessoa *pessoa = buscar_pessoa(l_pessoa, valores[0]);
+
+    if(pessoa == NULL) {
+        return;
+    }
+
+    strcpy(nome, pessoa->nome);
+    strcpy(data_nascimento, pessoa->data_nascimento);
+    strcpy(endereco, pessoa->endereco);
+    strcpy(fone, pessoa->fone);
+
+    for(int i = 1; i < qtd; i++) {
+        if(strcmp(campos[i], "nome") == 0 && strcmp(valores[i], "") != 0) {
+            strcpy(nome, valores[i]);
+        } else if(strcmp(campos[i], "data_nascimento") == 0 && strcmp(valores[i], "") != 0) {
+            strcpy(data_nascimento, valores[i]);
+        } else if(strcmp(campos[i], "endereco") == 0 && strcmp(valores[i], "") != 0) {
+            strcpy(endereco, valores[i]);
+        } else if(strcmp(campos[i], "fone") == 0 && strcmp(valores[i], "") != 0) {
+            strcpy(fone, valores[i]);
+        }
+    }
+
+    atualizar_pessoa(l_pessoa, pessoa->codigo, nome, fone, data_nascimento, endereco);
+
+}
+
+void executar_update_tipo_pet(struct comando *c_tipo_pet, struct tipo_de_pet *l_tipo_pet) {
+    char tabela[10];
+    char campos[2][255];
+    char valores[2][255];
+
+    char descricao[255];
+
+    int qtd = extrair_update(c_tipo_pet, tabela, campos, valores);
+
+    struct tipo_de_pet *tipo_pet = buscar_tipo_pet(l_tipo_pet, valores[0]);
+
+    if(tipo_pet == NULL) {
+        return;
+    }
+
+    strcpy(descricao, tipo_pet->descricao);
+
+    for(int i = 1; i < qtd; i++) {
+        if(strcmp(campos[i], "descricao") == 0 && strcmp(valores[i], "") != 0) {
+            strcpy(descricao, valores[i]);
+        }
+    }
+
+    atualizar_tipo_pet(l_tipo_pet, tipo_pet->codigo, descricao);
+
+}
+
+void executar_update_pet(struct comando *c_pet, struct pet *l_pet, struct tipo_de_pet *l_tipo_pet, struct pessoa *l_pessoa) {
+    char tabela[10];
+    char campos[4][255];
+    char valores[4][255];
+
+    char nome[255];
+    char codigo_cli[255];
+    char codigo_tipo[255];
+
+    int qtd = extrair_update(c_pet, tabela, campos, valores);
+
+    struct pet *pet = buscar_pet(l_pet, valores[0]);
+
+    if(pet == NULL) {
+        return;
+    }
+
+    strcpy(nome, pet->nome);
+    strcpy(codigo_cli, pet->codigo_pes);
+    strcpy(codigo_tipo, pet->codigo_tipo);
+
+    for(int i = 1; i < qtd; i++) {
+        if(strcmp(campos[i], "nome") == 0 && strcmp(valores[i], "") != 0) {
+            strcpy(nome, valores[i]);
+        } else if(strcmp(campos[i], "codigo_cli") == 0 && strcmp(valores[i], "") != 0) {
+            strcpy(codigo_cli, valores[i]);
+        } else if(strcmp(campos[i], "codigo_tipo") == 0 && strcmp(valores[i], "") != 0) {
+            strcpy(codigo_tipo, valores[i]);
+        }
+    }
+
+    atualizar_pet(l_pet, l_tipo_pet, l_pessoa, pet->codigo, nome, codigo_tipo, codigo_cli);
+
 }
 
 void remover_comando(struct comando **comandos, struct comando *comando) {

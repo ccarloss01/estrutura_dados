@@ -52,7 +52,7 @@ struct pet *buscar_pet(struct pet *lista, char codigo[]);
 
 void remover_pet(struct pet **lista, char codigo[]);
 
-void atualizar_pet(struct pet *lista, char codigo[], char nome[], char codigo_tipo[], char codigo_pes[]);
+void atualizar_pet(struct pet *lista, struct tipo_de_pet *tipo_pet, struct pessoa *pessoa, char codigo[], char nome[], char codigo_tipo[], char codigo_pes[]);
 
 void remover_comeco_pet(struct pet **lista);
 
@@ -93,5 +93,11 @@ void executar_delete_pessoa(struct comando *c_pessoa, struct pessoa **l_pessoa, 
 void executar_delete_tipo_pet(struct comando *c_tipo_pet, struct tipo_de_pet **l_tipo_de_pet, struct pet *pet);
 
 void executar_delete_pet(struct comando *c_pet, struct pet **l_pet);
+
+void executar_update_pessoa(struct comando *c_pessoa, struct pessoa *l_pessoa);
+
+void executar_update_tipo_pet(struct comando *c_tipo_pet, struct tipo_de_pet *l_tipo_pet);
+
+void executar_update_pet(struct comando *c_pet, struct pet *l_pet, struct tipo_de_pet *l_tipo_pet, struct pessoa *l_pessoa);
 
 #endif

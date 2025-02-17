@@ -15,7 +15,6 @@
 #include "arvore_func.h"
 
 int main() {
-
 	FILE *script = abrir_arquivo("script.txt");
 
 	FILE *f_pessoa = abrir_arquivo("pessoa.bin");
@@ -46,7 +45,7 @@ int main() {
 		&l_pessoa, &l_tipo_pet, &l_pet,
 		&a_pessoa, &a_tipo_pet, &a_pet);
 
-	armazenar_dados(l_pessoa, f_pessoa, l_tipo_pet, f_tipo_pet, l_pet, f_pet);
+	armazenar_dados(l_pessoa, &f_pessoa, l_tipo_pet, &f_tipo_pet, l_pet, &f_pet);
 	limpar_arvores(&a_pet, &a_tipo_pet, &a_pessoa);
 	limpar_listas(&l_pessoa, &l_tipo_pet, &l_pet);
 	fechar_arquivos(f_pessoa, f_tipo_pet, f_pet);
