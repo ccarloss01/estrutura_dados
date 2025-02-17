@@ -20,6 +20,11 @@ void inserir_final_pessoa(struct pessoa **lista, char codigo[], char nome[], cha
     }
     
     struct pessoa *nova_pessoa = malloc(sizeof(struct pessoa));
+    if (nova_pessoa == NULL) {
+        fprintf(stderr, "Erro ao alocar memória para nova pessoa\n");
+        return;
+    }
+
     strcpy(nova_pessoa->codigo, codigo);
     strcpy(nova_pessoa->nome, nome);
     strcpy(nova_pessoa->fone, fone);
@@ -150,6 +155,11 @@ void inserir_final_tipo_pet(struct tipo_de_pet **lista, char codigo[], char desc
     }
     
     struct tipo_de_pet *novo_tipo_pet = malloc(sizeof(struct tipo_de_pet));
+    if (novo_tipo_pet == NULL) {
+        fprintf(stderr, "Erro ao alocar memória para novo tipo pet\n");
+        return;
+    }
+
     strcpy(novo_tipo_pet->codigo, codigo);
     strcpy(novo_tipo_pet->descricao, descricao);
     novo_tipo_pet->prox = NULL;
@@ -278,6 +288,10 @@ void inserir_final_pet(struct pet **lista, struct pessoa *pessoa, struct tipo_de
     }
 
     struct pet *novo_pet = malloc(sizeof(struct pet));
+    if (novo_pet == NULL) {
+        fprintf(stderr, "Erro ao alocar memória para novo pet\n");
+        return;
+    }
     strcpy(novo_pet->codigo, codigo);
     strcpy(novo_pet->nome, nome);
     strcpy(novo_pet->codigo_tipo, codigo_tipo);
@@ -309,6 +323,11 @@ void inserir_final_pet_sem_verificar(struct pet **lista, char codigo[], char nom
     }
 
     struct pet *novo_pet = malloc(sizeof(struct pet));
+    if (novo_pet == NULL) {
+        fprintf(stderr, "Erro ao alocar memória para novo pet\n");
+        return;
+    }
+
     strcpy(novo_pet->codigo, codigo);
     strcpy(novo_pet->nome, nome);
     strcpy(novo_pet->codigo_tipo, codigo_tipo);
@@ -409,6 +428,11 @@ void imprimir_lista_pet(struct pet *l_pet) {
 // Métodos Lista Comando
 void inserir_final_comando(struct comando **lista, int ordem_exec, char instrucao[]) {
     struct comando *novo_comando = malloc(sizeof(struct comando));
+    if (novo_comando == NULL) {
+        fprintf(stderr, "Erro ao alocar memória para inserir final comando\n");
+        return;
+    }
+
     novo_comando->ordem_exec = ordem_exec;
 
     strcpy(novo_comando->instrucao, instrucao);
