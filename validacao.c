@@ -266,7 +266,7 @@ void extrair_update(struct comando *cmd, char tabela[], char campos[][255], char
         while (*p_where && isspace((unsigned char)*p_where))
             p_where++;  // Ignora espaços
         
-        // Extrai campo do WHERE
+        // Extrai campo do where
         j = 0;
         while (*p_where && *p_where != '=' && j < 254) {
             campos[0][j++] = *p_where;
@@ -285,7 +285,7 @@ void extrair_update(struct comando *cmd, char tabela[], char campos[][255], char
         while (*p_where && isspace((unsigned char)*p_where))
             p_where++; // Ignora espaços antes do valor
         
-        // Extrai valor do WHERE
+        // Extrai valor do Where
         j = 0;
         while (*p_where && *p_where != ';' && !isspace((unsigned char)*p_where) && j < 254) {
             valores[0][j++] = *p_where;
@@ -308,7 +308,7 @@ void extrair_update(struct comando *cmd, char tabela[], char campos[][255], char
             if (end_set != NULL && p_set >= end_set)
                 break;
 
-            // Extrai nome do campo
+            // e xtrai nome do campo
             j = 0;
             while (*p_set && *p_set != '=' && j < 254) {
                 campos[k][j++] = *p_set;
@@ -327,7 +327,7 @@ void extrair_update(struct comando *cmd, char tabela[], char campos[][255], char
             while (*p_set && isspace((unsigned char)*p_set))
                 p_set++; // Ignora espaços antes do valor
             
-            // Extrai o valor do campo do SET
+            // E=extrai o valor do campo do SET
             j = 0;
             if (*p_set == '\'') {
                 in_quotes = 1;
@@ -343,7 +343,7 @@ void extrair_update(struct comando *cmd, char tabela[], char campos[][255], char
             }
             valores[k][j] = '\0';
 
-            // Remove espaços finais do valor
+            // remove espaços finais do valor
             while (j > 0 && isspace((unsigned char)valores[k][j - 1])) {
                 valores[k][--j] = '\0';
             }

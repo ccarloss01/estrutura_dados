@@ -33,10 +33,6 @@ void ler_arquivo(FILE *arquivo, struct comando **lista) {
 }
 
 void transformar_minuscula(char str[]) {
-
-    char p[strlen(str)];
-    strcpy(p, "");
-
     for(int i = 0; i < strlen(str); i++) {
         str[i] = tolower(str[i]);
     }
