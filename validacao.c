@@ -7,6 +7,10 @@
 #include "comando.h"
 int validar_instrucao(struct comando *comando) {
 
+    if(validar_comando(comando) == 0) {
+        return 0;
+    }
+
     if(strstr(comando->instrucao, "pessoa")) {
         strcpy(comando->fila, "pessoa");
     } else if(strstr(comando->instrucao, "tipo_pet")) {
@@ -260,10 +264,6 @@ int validar_update(struct comando *cmd) {
 }
 
 int validar_comando(struct comando *cmd) {
-
-    if (strstr(cmd->instrucao, ");")){
-        return 0;
-    }
 
     if (strncmp(cmd->instrucao, "insert into ", 12) == 0) {
         return validar_insert(cmd);
